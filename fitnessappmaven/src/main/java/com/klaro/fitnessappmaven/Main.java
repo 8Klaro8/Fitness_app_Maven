@@ -1,40 +1,37 @@
 package com.klaro.fitnessappmaven;
 
-import java.awt.Color;
+import com.google.gson.*;
 import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.plaf.synth.SynthSpinnerUI;
-import javax.swing.text.Style;
-import netscape.javascript.JSObject;
 
 public final class Main {
     private Main() {
     }
-
     /**
      * Says hello to the world.
      * @param args The arguments of the program.
      */
     public static void main(String[] args) throws IOException{
-        HashMap<String, String> work_dict = new HashMap<String, String>(); 
-        work_dict.put("name", "pull-up");
-        work_dict.put("icon", "tempWorkoutIcons/workout.png");
-        work_dict.put("rep", "8");
-        work_dict.put("set", "12");
-        work_dict.put("time", "60");
 
-        // // HashMap to JSON
-        // GSon myGson = new Gson();
+        // ----------GSON---------------
+        // HashMap<String, String> work_dict = new HashMap<String, String>(); 
+        // work_dict.put("name", "pull-up");
+        // work_dict.put("icon", "tempWorkoutIcons/workout.png");
+        // work_dict.put("rep", "8");
+        // work_dict.put("set", "12");
+        // work_dict.put("time", "60");
+
+        // System.out.println("Before GSON: \n" + work_dict);
+
+        // Gson myGson = new Gson();
+        // String workdict_json = myGson.toJson(work_dict);
+        // System.out.println("JSON OBJ: \n" + workdict_json);
+
+        // HashMap fromJson = myGson.fromJson(workdict_json, HashMap.class);
+        // System.out.println("\nFrom JSON to HashMap: \n" + fromJson);
+        // ----------GSON---------------
 
         // GetCurrentUser getUser = new GetCurrentUser();
         // String current_user = getUser.get_current_user();
@@ -56,3 +53,8 @@ public final class Main {
         // db.update_name(conn, "employee", "employee_1", "employee_8");
     }
 }
+
+// SET PATH=%PATH%:C:\Program Files\Amazon Corretto\jdk11.0.16_9\bin
+// SET PATH=%PATH%:C:\Users\gergr\OneDrive\Dokumentumok\gson_jar
+
+

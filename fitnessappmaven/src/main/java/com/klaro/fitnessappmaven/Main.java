@@ -1,6 +1,7 @@
 package com.klaro.fitnessappmaven;
 
 import com.google.gson.*;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ public final class Main {
      */
     public static void main(String[] args) throws IOException{
 
-        // ----------GSON---------------
+        // // // // // ---------------------GSON------------------------------------------
         // HashMap<String, String> work_dict = new HashMap<String, String>(); 
         // work_dict.put("name", "pull-up");
         // work_dict.put("icon", "tempWorkoutIcons/workout.png");
@@ -29,16 +30,27 @@ public final class Main {
         // String workdict_json = myGson.toJson(work_dict);
         // System.out.println("JSON OBJ: \n" + workdict_json);
 
+        // // JsonObject obj = new JsonObject();
+        // // obj.addProperty("yes", "yes");
+        // // obj.addProperty("maybe", "maybe");
+        // // obj.addProperty("no", "no");
+        // // System.out.println(obj);
+
         // HashMap fromJson = myGson.fromJson(workdict_json, HashMap.class);
         // System.out.println("\nFrom JSON to HashMap: \n" + fromJson);
-        // ----------GSON---------------
+        // // // // // ---------------------GSON------------------------------------------
+
+        // // HashMap to JSON
+        // GSon myGson = new Gson();
 
         // GetCurrentUser getUser = new GetCurrentUser();
         // String current_user = getUser.get_current_user();
 
+        new ScrollTest();
+        // new LAyoutTest();
         // new MyWokrouts();
         // new ChangeProfile();
-        new MyFrame();
+        // new MyFrame();
         // new HomeSite();
         // ConnectToDB db = new ConnectToDB();
         // Connection conn = db.connect_to_db("accounts", "postgres", System.getenv("PASSWORD"));

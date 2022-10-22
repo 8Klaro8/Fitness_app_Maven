@@ -148,8 +148,8 @@ public class MyFrame extends JFrame implements ActionListener, LoginFormInterFac
             } catch (Exception err) {
                 // check if user is NOT exists and give respond to it
                 try {
-                    ResultSet userFount = db.get_by_name(conn, "my_users", userText);
-                    if (userFount == null) {
+                    boolean userFound = db.username_exists(conn, "my_users", userText);
+                    if (!(userFound)) {
                         JOptionPane.showMessageDialog(this, "The username: " + userText + " is not registered yet.");
                         userTextfield.setText("");
                         passwordTextfield.setText("");

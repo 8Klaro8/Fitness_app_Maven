@@ -24,9 +24,11 @@ public class MyWokrouts extends JFrame implements ActionListener {
     static final int COLUMNS = 3;
     JButton workoutButton;
     JButton backToHome;
+    JButton addWorkout;
     JPanel scrollablePanel;
     JPanel topBar;
     JPanel centerPanel;
+    JPanel scrollBar;
     final int BORDER_NUMBER = 10;
     public final String LOGO_PIC_PATH = "fitnessappmaven\\src\\main\\java\\com\\klaro\\fitnessappmaven\\Logo\\lgo.png";
     public final String WORKOUT_PIC_1 = "fitnessappmaven\\src\\main\\java\\com\\klaro\\fitnessappmaven\\tempWorkoutIcons\\yoga.png";
@@ -35,18 +37,21 @@ public class MyWokrouts extends JFrame implements ActionListener {
 
     public MyWokrouts() throws IOException {
 
-        // set button
+        // set back button
         backToHome = new JButton("< Back");
         backToHome.setLayout(null);
-
-        this.setTitle("MY IT app");
+        // this.scrollBar = createScrollPanel();
         this.setLayout(new BorderLayout()); // set the default layout to borderlayout
-        this.scrollablePanel = createPanel();
+
+        // create panel bars
         this.topBar = createTopBar(); // create top bar which includes a back button
-        this.add(topBar); // adding topBar to this(JFrame)
-        this.centerPanel = manageWorkouts();
-        // this.add(centerPanel);
-        this.add(BorderLayout.WEST, new JScrollPane(scrollablePanel));
+        this.centerPanel = createCentralPanel();
+        this.scrollBar = createScrollPanel();
+
+        // this.scrollBar.add(new JScrollPane(contentForScrollPane()));
+
+        // set frame basics
+        this.setTitle("MY IT app");
         this.setBounds(10, 10, 370, 500);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLocationRelativeTo(null);
@@ -64,19 +69,26 @@ public class MyWokrouts extends JFrame implements ActionListener {
     // top bar
     public JPanel createTopBar() {
         JPanel topBar = new JPanel();
-        topBar.setLayout(new BoxLayout(topBar, BoxLayout.Y_AXIS));
+        topBar.setBackground(Color.BLACK);
         return topBar;
     }
 
-    // manage workouts
-    public JPanel manageWorkouts() {
+    // create central
+    public JPanel createCentralPanel() {
         JPanel centerPanel = new JPanel();
-        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.X_AXIS));
+        centerPanel.setBackground(Color.GREEN);
         return centerPanel;
     }
 
+    // create scroll bar(left panel)
+    public JPanel createScrollPanel() {
+        JPanel scrollBar = new JPanel();
+        scrollBar.setBackground(Color.BLACK);
+        return scrollBar;
+    }
+
     // scrollable workout panel
-    public JPanel createPanel() {
+    public JPanel contentForScrollPane() {
         // TODO: Display prof. pics in 3 columns
         JPanel panel = new JPanel();
         panel.setBorder(new EmptyBorder(BORDER_NUMBER, BORDER_NUMBER, BORDER_NUMBER, 25));
@@ -93,6 +105,7 @@ public class MyWokrouts extends JFrame implements ActionListener {
                 { "Workout 3", "Rep", "Kcal", WORKOUT_PIC_1 },
         };
         panel.setLayout(new GridLayout(workoutExamples.length, 1, 10, 10));
+
         for (int j = 0; j < workoutExamples.length; j++) {
             workoutButton = new JButton();
             // Set the current image(icon) to a JButton and adds it to panel
@@ -128,6 +141,11 @@ public class MyWokrouts extends JFrame implements ActionListener {
     // Adds all components to 'container'
     public void addComponentsToContainer() {
         topBar.add(backToHome);
+        centerPanel.add(addWorkout);
+        // add JPanels to .this
+        this.add(BorderLayout.NORTH, topBar);
+        this.add(BorderLayout.EAST, centerPanel);
+        this.add(BorderLayout.WEST, scrollBar);
     }
 
     // add action event
@@ -137,9 +155,10 @@ public class MyWokrouts extends JFrame implements ActionListener {
 
     // Sets the components size and location
     public void setLocationAndSize() {
-        backToHome.setSize(new Dimension(100, 50));
-        backToHome.setAlignmentX(topBar.RIGHT_ALIGNMENT);
-
+        // backToHome.setSize(new Dimension(100, 50));
+        // backToHome.setAlignmentX(topBar.RIGHT_ALIGNMENT);
+        // addWorkout.setSize(new Dimension(10, 10));
+        // addWorkout.setAlignmentX(centerPanel.RIGHT_ALIGNMENT);
     }
 
     @Override

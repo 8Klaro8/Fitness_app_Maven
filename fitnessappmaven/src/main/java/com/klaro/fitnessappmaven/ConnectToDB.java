@@ -274,17 +274,16 @@ public class ConnectToDB {
         }
     }
 
-    public void add_workout(Connection conn, String table_name, String work_dict, String current_user) {
+    public void add_workout(Connection conn, String value, String current_user) {
         /**
          * Adds workout with icon, name, rep, set, time(intervalum)
          * 
          * @param Connection conn
-         * @param String     table_name
          * @param String     work_dict
          * @param String current_user
          * 
          */
-        String query = String.format("insert into %s work_dict value '%s' where username='%s';", table_name, work_dict, current_user);
+        String query = String.format("UPDATE my_users SET json_workouts = array_append(json_workouts,'%s') WHERE username='%s'", value, current_user);
         try {
             Statement statement = conn.createStatement();
             statement.executeUpdate(query);
@@ -295,7 +294,7 @@ public class ConnectToDB {
     }
 
     public boolean username_exists(Connection conn, String table_name, String username) {
-        String query = String.format("select username in %s where username='%s'", table_name, username); 
+        String query = String.format("SELECT username IN %s WHERE username='%s'", table_name, username); 
         try {
             Statement statement = conn.createStatement();
             statement.executeQuery(query);
@@ -304,5 +303,42 @@ public class ConnectToDB {
             return false;
             // System.out.println(e.getMessage());
         }
+    }
+
+    public void add_column(Connection conn, String column_name, String value_to_add) {
+        String query = String.format("ALTER TABLE my_users ADD %s %s;", column_name, value_to_add);
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeUpdate(query);
+            System.out.println("Column successfuly added.");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void remove_column(Connection conn, String column_name) {
+        String query = String.format("ALTER TABLE my_users DROP %s;", column_name);
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeUpdate(query);
+            System.out.println("Column successfuly dropped.");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public String read_workout(Connection conn, String username) {
+        String query = String.format("select workouts from my_users where username='%s'", username);
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet resSet = statement.executeQuery(query);
+            while (resSet.next()) {
+                return resSet.getString("workouts");
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+        return null;
     }
 }

@@ -1,97 +1,78 @@
 package com.klaro.fitnessappmaven;
 
-import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.Arrays;
-
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.plaf.synth.SynthSpinnerUI;
-
-import java.awt.event.*;
-import javax.swing.*;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
 import javax.swing.border.*;
-
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+
+/**
+ * MyWokrouts
+ */
+// TODO - make horizotal scrolling vanish
 
 public class MyWokrouts extends JFrame implements ActionListener {
-    static final int COLUMNS = 3;
-    JButton workoutButton;
-    JButton backToHome;
-    JButton addWorkout;
-    JPanel scrollablePanel;
-    JPanel topBar;
-    JPanel centerPanel;
-    JPanel scrollBar;
-    final int BORDER_NUMBER = 10;
-    public final String LOGO_PIC_PATH = "fitnessappmaven\\src\\main\\java\\com\\klaro\\fitnessappmaven\\Logo\\lgo.png";
+    // init. button(s) and panel(s)
+    JButton button, back, test, workoutButton, addWorkout, removeWorkout;
+    JPanel panelTop, panelBottom, panelRight, panelCenter, panelScroll;
+
+    // paths
     public final String WORKOUT_PIC_1 = "fitnessappmaven\\src\\main\\java\\com\\klaro\\fitnessappmaven\\tempWorkoutIcons\\yoga.png";
     public final String WORKOUT_PIC_2 = "fitnessappmaven\\src\\main\\java\\com\\klaro\\fitnessappmaven\\tempWorkoutIcons\\workout.png";
     public final String WORKOUT_PIC_3 = "fitnessappmaven\\src\\main\\java\\com\\klaro\\fitnessappmaven\\tempWorkoutIcons\\fitness.png";
 
-    public MyWokrouts() throws IOException {
-
-        // set back button
-        backToHome = new JButton("< Back");
-        backToHome.setLayout(null);
-        // this.scrollBar = createScrollPanel();
-        this.setLayout(new BorderLayout()); // set the default layout to borderlayout
-
-        // create panel bars
-        this.topBar = createTopBar(); // create top bar which includes a back button
-        this.centerPanel = createCentralPanel();
-        this.scrollBar = createScrollPanel();
-
-        // this.scrollBar.add(new JScrollPane(contentForScrollPane()));
-
-        // set frame basics
-        this.setTitle("MY IT app");
-        this.setBounds(10, 10, 370, 500);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setLocationRelativeTo(null);
-        this.setResizable(false);
-        this.setVisible(true);
-
-        // set icon
-        ImageIcon image = new ImageIcon(LOGO_PIC_PATH);
-        this.setIconImage(image.getImage());
-        this.getContentPane().setBackground(Color.WHITE);
-
-        MyWorkoutsFrame();
+    public MyWokrouts() {
+        // init. buttons
+        button = new JButton("Love");
+        back = new JButton("<Back");
+        addWorkout = new JButton("Add Workout");
+        removeWorkout = new JButton("Remove Workout");
+        // initialize panels
+        panelTop = new JPanel();
+        panelBottom = new JPanel();
+        panelRight = new JPanel();
+        panelCenter = new JPanel();
+        panelScroll = create_scroll_panel();
+        panelTop.setPreferredSize(new Dimension(200, 20));
+        // functions
+        setup(); // call setup - sets up the basics for this.JFrame
+        // set_panel_color(); // set color of panels
+        set_center_panel();
+        set_top_panel(); // set panelTop: add back button to it and align it to right
+        set_location(); // set size and locations of elements
+        addActionEvent(); // adds action(s) to buttons
+        SwingUtilities.updateComponentTreeUI(this); // force refresh page to make everything visible right away.
     }
 
-    // top bar
-    public JPanel createTopBar() {
-        JPanel topBar = new JPanel();
-        topBar.setBackground(Color.BLACK);
-        return topBar;
+    public void set_center_panel() {
+        JPanel adjustPanel = new JPanel();
+        adjustPanel.setLayout(new GridLayout(8, 1, 10, 10));
+        adjustPanel.add(new JPanel());
+        adjustPanel.add(addWorkout);
+        adjustPanel.add(removeWorkout);
+        panelCenter.add(BorderLayout.CENTER, adjustPanel);
     }
 
-    // create central
-    public JPanel createCentralPanel() {
-        JPanel centerPanel = new JPanel();
-        centerPanel.setBackground(Color.GREEN);
-        return centerPanel;
+    private void set_top_panel() {
+        panelTop.setLayout(new GridLayout(1, 3, 10, 10));
+        for (int i = 0; i < 3; i++) {
+            JPanel pan = new JPanel();
+            panelTop.add(pan);
+        }
+        panelTop.add(back);
+        panelTop.setPreferredSize(new Dimension(100, 30));
     }
 
-    // create scroll bar(left panel)
-    public JPanel createScrollPanel() {
-        JPanel scrollBar = new JPanel();
-        scrollBar.setBackground(Color.BLACK);
-        return scrollBar;
-    }
-
-    // scrollable workout panel
-    public JPanel contentForScrollPane() {
-        // TODO: Display prof. pics in 3 columns
-        JPanel panel = new JPanel();
-        panel.setBorder(new EmptyBorder(BORDER_NUMBER, BORDER_NUMBER, BORDER_NUMBER, 25));
+    public JPanel create_scroll_panel() {
+        JPanel panelScroll = new JPanel();
+        // panelScroll.setBorder(new EmptyBorder(new Insets(10,10,10,20)));
+        panelScroll.setBorder(new EmptyBorder(10, 10, 10, 25));
         String[][] workoutExamples = new String[][] {
                 { "Workout 1", "Rep", "Kcal", WORKOUT_PIC_1 },
                 { "Workout 2", "Rep", "Kcal", WORKOUT_PIC_2 },
@@ -103,31 +84,46 @@ public class MyWokrouts extends JFrame implements ActionListener {
                 { "Workout 3", "Rep", "Kcal", WORKOUT_PIC_1 },
                 { "Workout 3", "Rep", "Kcal", WORKOUT_PIC_1 },
                 { "Workout 3", "Rep", "Kcal", WORKOUT_PIC_1 },
+                { "Workout 3", "Rep", "Kcal", WORKOUT_PIC_1 },
+                { "Workout 3", "Rep", "Kcal", WORKOUT_PIC_1 },
+                { "Workout 3", "Rep", "Kcal", WORKOUT_PIC_1 },
+                { "Workout 3", "Rep", "Kcal", WORKOUT_PIC_1 },
         };
-        panel.setLayout(new GridLayout(workoutExamples.length, 1, 10, 10));
-
-        for (int j = 0; j < workoutExamples.length; j++) {
+        panelScroll.setLayout(new GridLayout(workoutExamples.length, 1, 10, 10));
+        for (int i = 0; i < workoutExamples.length; i++) {
             workoutButton = new JButton();
-            // Set the current image(icon) to a JButton and adds it to panel
-            workoutButton = setWorkoutButtonIcon(workoutExamples[j][3], workoutButton);
-            // adds current button to the panel
-            workoutButton.setText(workoutExamples[j][0]);
-            panel.add(workoutButton);
+            workoutButton = setWorkoutButtonIcon(workoutExamples[i][3], workoutButton);
+            workoutButton.setText(workoutExamples[i][0]);
+            panelScroll.add(workoutButton);
         }
-        return panel;
+        return panelScroll;
     }
 
-    // setup button
-    public void MyWorkoutsFrame() {
-        setLocationAndSize();
-        addComponentsToContainer();
-        addActionEvent();
+    public void setup() {
+        // this Frame
+        this.setTitle("My IT App");
+        this.setLayout(new BorderLayout());
+        this.setBounds(10, 10, 370, 500);
+        this.setResizable(false);
+        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+        this.setLocationRelativeTo(null);
+        this.setVisible(true);
     }
 
-    // leads to home page
-    public void go_back_to_homesite() throws IOException {
-        this.dispose();
-        new HomeSite();
+    public void set_location() {
+        this.add(BorderLayout.NORTH, panelTop);
+        this.add(BorderLayout.SOUTH, panelBottom);
+        this.add(BorderLayout.EAST, panelRight);
+        this.add(BorderLayout.CENTER, panelCenter);
+        this.add(BorderLayout.WEST, new JScrollPane(panelScroll));
+        this.add(BorderLayout.NORTH, panelTop);
+    }
+
+    public void set_panel_color() {
+        panelTop.setBackground(Color.GREEN);
+        panelBottom.setBackground(Color.BLACK);
+        panelRight.setBackground(Color.RED);
+        panelCenter.setBackground(Color.PINK);
     }
 
     public JButton setWorkoutButtonIcon(String picPath, JButton button) {
@@ -138,37 +134,32 @@ public class MyWokrouts extends JFrame implements ActionListener {
         return button;
     }
 
-    // Adds all components to 'container'
-    public void addComponentsToContainer() {
-        topBar.add(backToHome);
-        centerPanel.add(addWorkout);
-        // add JPanels to .this
-        this.add(BorderLayout.NORTH, topBar);
-        this.add(BorderLayout.EAST, centerPanel);
-        this.add(BorderLayout.WEST, scrollBar);
+    public void go_back_to_homesite() throws IOException {
+        this.dispose();
+        new HomeSite();
+    }
+    public void go_to_addworkout() {
+        this.dispose();
+        new AddWorkout();
     }
 
     // add action event
     public void addActionEvent() {
-        backToHome.addActionListener(this);
-    }
-
-    // Sets the components size and location
-    public void setLocationAndSize() {
-        // backToHome.setSize(new Dimension(100, 50));
-        // backToHome.setAlignmentX(topBar.RIGHT_ALIGNMENT);
-        // addWorkout.setSize(new Dimension(10, 10));
-        // addWorkout.setAlignmentX(centerPanel.RIGHT_ALIGNMENT);
+        back.addActionListener(this);
+        addWorkout.addActionListener(this);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == backToHome) {
+        if (e.getSource() == back) {
             try {
-                go_back_to_homesite();
+                go_back_to_homesite();// leads to home page
             } catch (Exception err) {
                 System.out.println(err.getMessage());
             }
+        }
+        else if(e.getSource() == addWorkout){
+            go_to_addworkout();
         }
     }
 }

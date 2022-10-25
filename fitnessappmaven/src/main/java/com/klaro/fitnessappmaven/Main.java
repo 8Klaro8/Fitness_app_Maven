@@ -1,23 +1,29 @@
 package com.klaro.fitnessappmaven;
 
 import com.google.gson.*;
-
 import java.io.IOException;
 import java.io.Reader;
+import java.io.SerializablePermission;
+import java.sql.Connection;
+import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 public final class Main {
     private Main() {
     }
+
     /**
      * Says hello to the world.
+     * 
      * @param args The arguments of the program.
      */
-    public static void main(String[] args) throws IOException{
+    public static void main(String[] args) throws IOException {
 
-        // // // // // ---------------------GSON------------------------------------------
-        // HashMap<String, String> work_dict = new HashMap<String, String>(); 
+        // // // // //
+        // ---------------------GSON------------------------------------------
+        // HashMap<String, String> work_dict = new HashMap<String, String>();
         // work_dict.put("name", "pull-up");
         // work_dict.put("icon", "tempWorkoutIcons/workout.png");
         // work_dict.put("rep", "8");
@@ -38,22 +44,42 @@ public final class Main {
 
         // HashMap fromJson = myGson.fromJson(workdict_json, HashMap.class);
         // System.out.println("\nFrom JSON to HashMap: \n" + fromJson);
-        // // // // // ---------------------GSON------------------------------------------
+        // // // // //
+        // ---------------------GSON------------------------------------------
 
-        // // HashMap to JSON
-        // GSon myGson = new Gson();
+        
+        Gson myGson = new Gson();
+        GsonBuilder gsonMapBuilder = new GsonBuilder(); // HashMap to JSON
+        Gson gsonObject = gsonMapBuilder.create();
 
         // GetCurrentUser getUser = new GetCurrentUser();
         // String current_user = getUser.get_current_user();
 
-        new ScrollTest();
-        // new LAyoutTest();
+        // new AddWorkout();
         // new MyWokrouts();
         // new ChangeProfile();
         // new MyFrame();
         // new HomeSite();
-        // ConnectToDB db = new ConnectToDB();
-        // Connection conn = db.connect_to_db("accounts", "postgres", System.getenv("PASSWORD"));
+        ConnectToDB db = new ConnectToDB();
+        Connection conn = db.connect_to_db("accounts", "postgres", System.getenv("PASSWORD"));
+        // db.add_column(conn, "json_workouts", "JSONB");
+
+        // This is how to add and read
+        // workout------------------------------------------------------
+        HashMap<String, String> value = new HashMap<String, String>();
+        value.put("1", "value1");
+        value.put("2", "value2");
+        value.put("3", "value3");
+
+        String toJsonValue = gsonObject.toJson(value);
+        db.add_workout(conn, toJsonValue, "y");
+        db.remove_column(conn, "json_workouts");
+
+        // This is how to add and read
+        // workout------------------------------------------------------
+
+        // db.remove_column(conn, "workouts");
+        // db.add_column(conn, "workouts", "TEXT[][]");
         // db.add_workout(conn, "my_users", work_dict, current_user);
 
         // System.getenv("PASSWORD"));
@@ -68,5 +94,3 @@ public final class Main {
 
 // SET PATH=%PATH%:C:\Program Files\Amazon Corretto\jdk11.0.16_9\bin
 // SET PATH=%PATH%:C:\Users\gergr\OneDrive\Dokumentumok\gson_jar
-
-

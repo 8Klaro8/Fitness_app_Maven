@@ -48,33 +48,37 @@ public final class Main {
         // ---------------------GSON------------------------------------------
 
         
-        Gson myGson = new Gson();
-        GsonBuilder gsonMapBuilder = new GsonBuilder(); // HashMap to JSON
-        Gson gsonObject = gsonMapBuilder.create();
+        // Gson myGson = new Gson();
+        // GsonBuilder gsonMapBuilder = new GsonBuilder(); // HashMap to JSON
+        // Gson gsonObject = gsonMapBuilder.create();
 
         // GetCurrentUser getUser = new GetCurrentUser();
         // String current_user = getUser.get_current_user();
 
         // new AddWorkout();
-        // new MyWokrouts();
+        new MyWokrouts();
         // new ChangeProfile();
         // new MyFrame();
         // new HomeSite();
-        ConnectToDB db = new ConnectToDB();
-        Connection conn = db.connect_to_db("accounts", "postgres", System.getenv("PASSWORD"));
+        // ConnectToDB db = new ConnectToDB();
+        // Connection conn = db.connect_to_db("accounts", "postgres", System.getenv("PASSWORD"));
         // db.add_column(conn, "json_workouts", "JSONB");
 
         // This is how to add and read
         // workout------------------------------------------------------
-        HashMap<String, String> value = new HashMap<String, String>();
-        value.put("1", "value1");
-        value.put("2", "value2");
-        value.put("3", "value3");
+        // HashMap<String, String> value = new HashMap<String, String>();
+        // value.put("1", "value1");
+        // value.put("2", "value2");
+        // value.put("3", "value3");
 
-        String toJsonValue = gsonObject.toJson(value);
-        db.add_workout(conn, toJsonValue, "y");
-        db.remove_column(conn, "json_workouts");
+        // String toJsonValue = myGson.toJson(value);
+        // db.add_workout(conn, toJsonValue, "y");
+        // db.remove_column(conn, "json_workouts");
 
+        // Read Json from DB--------------------------------------------
+        // String jsonData = db.read_workout(conn, "y");
+        // JsonElement jsonDataString = JsonParser.parseString(jsonData);
+        // System.out.println(jsonDataString.getAsJsonArray().get(1).getAsJsonObject().get("1"));
         // This is how to add and read
         // workout------------------------------------------------------
 

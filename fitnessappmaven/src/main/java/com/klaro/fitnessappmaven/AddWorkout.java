@@ -29,6 +29,7 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
     ConnectToDB db = new ConnectToDB();
     Connection conn = db.connect_to_db("accounts", "postgres", System.getenv("PASSWORD"));
     CurrentUser currentUser = new CurrentUser();
+    Gson myGson = new Gson();
 
     public AddWorkout() {
         workoList = new WorkoutList(); // workout icons
@@ -172,10 +173,9 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
             String workoutName = workoutTitleInput.getText();
             workoutHash.put("name", workoutName);
 
-            String myGson = to_gson(workoutHash);
-            System.out.println(myGson);
+            String toJsonValue = myGson.toJson(workoutHash); // transforming HashMap to Json
             try {
-                db.add_workout(conn, myGson, currentUser.get_current_user());
+                db.add_workout(conn, toJsonValue, currentUser.get_current_user()); // add workout(jsonified HashMap using Gson) to current user
                 JOptionPane.showMessageDialog(this, "Workout added successfuly!");
                 go_back_to_homesite();
             } catch (Exception err) {

@@ -283,7 +283,7 @@ public class ConnectToDB {
          * @param String current_user
          * 
          */
-        String query = String.format("UPDATE my_users SET json_workouts = array_append(json_workouts,'%s') WHERE username='%s'", value, current_user);
+        String query = String.format("UPDATE my_users SET json_workouts = (CASE WHEN json_workouts IS NULL THEN '[]'::JSONB ELSE json_workouts END) || '%s'::JSONB WHERE username='%s';", value, current_user);
         try {
             Statement statement = conn.createStatement();
             statement.executeUpdate(query);
@@ -292,6 +292,13 @@ public class ConnectToDB {
             System.out.println(e.getMessage());
         }
     }
+// Add json data-------------------------------------------------
+//     UPDATE jsontesting SET jsondata = (
+//     CASE
+//         WHEN jsondata IS NULL THEN '[]'::JSONB
+//         ELSE jsondata
+//     END
+// ) || '["newString"]'::JSONB WHERE id = 7;
 
     public boolean username_exists(Connection conn, String table_name, String username) {
         String query = String.format("SELECT username IN %s WHERE username='%s'", table_name, username); 
@@ -328,12 +335,12 @@ public class ConnectToDB {
     }
 
     public String read_workout(Connection conn, String username) {
-        String query = String.format("select workouts from my_users where username='%s'", username);
+        String query = String.format("select json_workouts from my_users where username='%s'", username);
         try {
             Statement statement = conn.createStatement();
             ResultSet resSet = statement.executeQuery(query);
             while (resSet.next()) {
-                return resSet.getString("workouts");
+                return resSet.getString("json_workouts");
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());

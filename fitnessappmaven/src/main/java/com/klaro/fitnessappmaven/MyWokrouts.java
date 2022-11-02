@@ -3,6 +3,7 @@ package com.klaro.fitnessappmaven;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
@@ -92,6 +93,10 @@ public class MyWokrouts extends JFrame implements ActionListener {
 
         // Read workout form DB based on current user
         String workouts = db.read_workout(conn, currUser.get_current_user()); // get workouts from DB
+        if (workouts == null) {
+            JOptionPane.showMessageDialog(this, "There are no workouts added yet.");
+            go_to_addworkout();
+        }
         int workoutsLength = workouts.length(); // length of workouts
         String[][] workoutArray = new String[workoutsLength][3]; // initialize array to contain workouts with the length
                                                                  // of workouts and fixed size of 3
@@ -104,11 +109,11 @@ public class MyWokrouts extends JFrame implements ActionListener {
 
         // String testString = "{\"suti\": \"27\"}, {\"hal\": \"14\"}, {\"malac\": \"64\"}";
         workoutSeparations = separate_workout(workoutSeparations, currentSubs, workouts);
-        System.out.println("WOKROUTSEP: " + workoutSeparations);
 
         // workout loop - as many times as many workouts given
         ArrayList<String> pairCollections = new ArrayList<String>();
         ArrayList<HashMap> workoutCollection = new ArrayList<HashMap>(); // collection of workout HashMaps
+
         HashMap<String, String> currentWorkout = new HashMap<>(); // ready key value pairs
         String currentPair = "";
         for (int i = 0; i < workoutSeparations.size(); i++) { // number of workouts
@@ -120,34 +125,25 @@ public class MyWokrouts extends JFrame implements ActionListener {
                 String[] entry = pair.split(":");
                 currentWorkout.put(entry[0].trim(), entry[1].trim());
             }
-            System.out.println("currentWorkout Map: " + currentWorkout);
-            workoutCollection.add(currentWorkout);
+            pairCollections.clear(); // clear pairCollections after addition
+            workoutCollection.add(new HashMap<String, String>(currentWorkout)); // append currentWorkout as a new example to avoid 'reference trap'
+            currentWorkout.clear(); // after addition clear the 'container'
         }
         // loop thru workout HashMaps and get out: path
-
-
-        String[][] workoutExamples = new String[][] {
-                { "Workout 1", "Rep", "Kcal", WORKOUT_PIC_1 },
-                { "Workout 2", "Rep", "Kcal", WORKOUT_PIC_2 },
-                { "Workout 3", "Rep", "Kcal", WORKOUT_PIC_3 },
-                { "Workout 3", "Rep", "Kcal", WORKOUT_PIC_1 },
-                { "Workout 3", "Rep", "Kcal", WORKOUT_PIC_1 },
-                { "Workout 3", "Rep", "Kcal", WORKOUT_PIC_1 },
-                { "Workout 3", "Rep", "Kcal", WORKOUT_PIC_1 },
-                { "Workout 3", "Rep", "Kcal", WORKOUT_PIC_1 },
-                { "Workout 3", "Rep", "Kcal", WORKOUT_PIC_1 },
-                { "Workout 3", "Rep", "Kcal", WORKOUT_PIC_1 },
-                { "Workout 3", "Rep", "Kcal", WORKOUT_PIC_1 },
-                { "Workout 3", "Rep", "Kcal", WORKOUT_PIC_1 },
-                { "Workout 3", "Rep", "Kcal", WORKOUT_PIC_1 },
-                { "Workout 3", "Rep", "Kcal", WORKOUT_PIC_1 },
-        };
-        panelScroll.setLayout(new GridLayout(workoutExamples.length, 1, 10, 10));
-        for (int i = 0; i < workoutExamples.length; i++) {
+        panelScroll.setLayout(new GridLayout(workoutCollection.size(), 1, 10, 10));
+        for (HashMap hashMap : workoutCollection) {
+            String currentPath = String.valueOf(hashMap.values().toArray()[2]);
+            String currentName = String.valueOf(hashMap.values().toArray()[0]);
+            
+            // remove extra quotes from path
+            currentPath = currentPath.substring(1,currentPath.length()-1);
+            currentName = currentName.substring(1,currentName.length()-1);
+            
             workoutButton = new JButton();
-            workoutButton = setWorkoutButtonIcon(workoutExamples[i][3], workoutButton);
-            workoutButton.setText(workoutExamples[i][0]);
+            workoutButton = setWorkoutButtonIcon(currentPath, workoutButton);
+            workoutButton.setText(currentName);
             panelScroll.add(workoutButton);
+        
         }
         return panelScroll;
     }

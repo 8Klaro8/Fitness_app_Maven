@@ -2,12 +2,14 @@ package com.klaro.fitnessappmaven;
 
 import javax.swing.border.*;
 import javax.swing.plaf.metal.OceanTheme;
+import javax.swing.plaf.synth.SynthSpinnerUI;
 
 import java.awt.*;
 import java.io.IOException;
 import java.sql.Connection;
 import java.text.BreakIterator;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.awt.event.*;
 import javax.swing.*;
@@ -150,9 +152,10 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
     public void itemStateChanged(ItemEvent e) {
         if (e.getSource() == jCombo) {
             if (jCombo.getSelectedItem().equals("Please select")) {
+                JOptionPane.showMessageDialog(this, "Please select a workout type.");
+                return;
             } else {
                 selectedWorkoutType = jCombo.getSelectedItem();
-                System.out.println(selectedWorkoutType);
                 workoutHash.put("type", String.valueOf(selectedWorkoutType));
             }
         }
@@ -171,16 +174,45 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
         }
         if (e.getSource() == addWorkout) {
             String workoutName = workoutTitleInput.getText();
-            workoutHash.put("name", workoutName);
-
-            String toJsonValue = myGson.toJson(workoutHash); // transforming HashMap to Json
-            try {
-                db.add_workout(conn, toJsonValue, currentUser.get_current_user()); // add workout(jsonified HashMap using Gson) to current user
-                JOptionPane.showMessageDialog(this, "Workout added successfuly!");
-                go_back_to_homesite();
-            } catch (Exception err) {
-                System.out.println(err.getMessage());
+            if (workoutName.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please give a workout name.");
+                return;
             }
+            workoutHash.put("name", workoutName);
+            Object[] workoutHashArray = workoutHash.values().toArray();
+            if (workoutHashArray.length == 3) {
+                if (!(workoutHashArray[2].equals("Gym") || workoutHashArray[2].equals("Cardio")
+                        || workoutHashArray[2].equals("Street"))) {
+                    JOptionPane.showMessageDialog(this, "Please select workout.");
+                    return;
+                } else {
+                    String toJsonValue = myGson.toJson(workoutHash); // transforming HashMap to Json
+                    try {
+                        db.add_workout(conn, toJsonValue, currentUser.get_current_user()); // add workout(jsonified
+                                                                                           // HashMap
+                                                                                           // using Gson) to current
+                                                                                           // user
+                        JOptionPane.showMessageDialog(this, "Workout added successfuly!");
+                        go_back_to_homesite();
+                    } catch (Exception err) {
+                        System.out.println(err.getMessage());
+                    }
+                }
+            } else {
+                if (workoutHashArray.length != 3) {
+                    if (workoutHashArray[0].toString().length() < 30) {
+                        JOptionPane.showMessageDialog(this, "Please choose an icon.");
+                        return;
+                    } else {
+                        System.out.println(Arrays.toString(workoutHashArray));
+                        JOptionPane.showMessageDialog(this, "Please select workout type.");
+                        return;
+                    }
+
+                }
+
+            }
+
         }
 
     }

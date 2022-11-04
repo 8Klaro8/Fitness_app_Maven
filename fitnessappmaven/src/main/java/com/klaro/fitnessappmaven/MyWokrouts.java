@@ -1,5 +1,7 @@
 package com.klaro.fitnessappmaven;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -16,8 +18,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.io.IOException;
 import java.security.KeyStore.Entry;
 import java.sql.Connection;
@@ -31,6 +32,7 @@ import java.util.Map;
 // TODO - make horizotal scrolling vanish
 
 public class MyWokrouts extends JFrame implements ActionListener {
+    String buttonToDelete = "";// temp solution for preserving selected workout - for deletion
     // init. button(s) and panel(s)
     JButton button, back, test, workoutButton, addWorkout, removeWorkout;
     JPanel panelTop, panelBottom, panelRight, panelCenter, panelScroll;
@@ -97,6 +99,15 @@ public class MyWokrouts extends JFrame implements ActionListener {
             JOptionPane.showMessageDialog(this, "There are no workouts added yet.");
             go_to_addworkout();
         }
+        ArrayList<HashMap> workoutCollection = prepare_workouts_by_selection(workouts);
+        // loop thru workout HashMaps and get out: path
+        panelScroll.setLayout(new GridLayout(workoutCollection.size(), 1, 10, 10));
+        display_workout_buttons(panelScroll, workoutCollection);
+
+        return panelScroll;
+    }
+
+    private ArrayList<HashMap> prepare_workouts_by_selection(String workouts) {
         int workoutsLength = workouts.length(); // length of workouts
         String[][] workoutArray = new String[workoutsLength][3]; // initialize array to contain workouts with the length
                                                                  // of workouts and fixed size of 3
@@ -106,9 +117,7 @@ public class MyWokrouts extends JFrame implements ActionListener {
 
         ArrayList<String> workoutSeparations = new ArrayList<String>(); // arraylist to contain separated workouts
         String currentSubs = ""; // current substring
-
-        // String testString = "{\"suti\": \"27\"}, {\"hal\": \"14\"}, {\"malac\": \"64\"}";
-        workoutSeparations = separate_workout(workoutSeparations, currentSubs, workouts);
+        workoutSeparations = separate_workout(workoutSeparations, currentSubs, workouts); // separates each workout
 
         // workout loop - as many times as many workouts given
         ArrayList<String> pairCollections = new ArrayList<String>();
@@ -118,44 +127,55 @@ public class MyWokrouts extends JFrame implements ActionListener {
         String currentPair = "";
         for (int i = 0; i < workoutSeparations.size(); i++) { // number of workouts
             currentPair = create_keyValue_pairs(workoutSeparations, pairCollections, currentPair, i);
-            pairCollections.add(currentPair);
-            currentPair = "";
-            // read workout to add to UI, then clear ArrayList before add next workout.
-            for (String pair : pairCollections) {
-                String[] entry = pair.split(":");
-                currentWorkout.put(entry[0].trim(), entry[1].trim());
-            }
+            pairCollections.add(currentPair); // add current workout pair to 'pairCollections'
+            currentPair = ""; // empty 'currentPair'
+            create_workout_pairs(pairCollections, currentWorkout);// read workout to add to UI, then clear ArrayList
+                                                                  // before add next workout.
             pairCollections.clear(); // clear pairCollections after addition
-            workoutCollection.add(new HashMap<String, String>(currentWorkout)); // append currentWorkout as a new example to avoid 'reference trap'
+            workoutCollection.add(new HashMap<String, String>(currentWorkout)); // append currentWorkout as a new
+                                                                                // example to avoid 'reference trap'
             currentWorkout.clear(); // after addition clear the 'container'
         }
-        // loop thru workout HashMaps and get out: path
-        panelScroll.setLayout(new GridLayout(workoutCollection.size(), 1, 10, 10));
-        for (HashMap hashMap : workoutCollection) {
-            String currentPath = String.valueOf(hashMap.values().toArray()[2]);
-            String currentName = String.valueOf(hashMap.values().toArray()[0]);
-            
-            // remove extra quotes from path
-            currentPath = currentPath.substring(1,currentPath.length()-1);
-            currentName = currentName.substring(1,currentName.length()-1);
-            
-            workoutButton = new JButton();
-            workoutButton = setWorkoutButtonIcon(currentPath, workoutButton);
-            workoutButton.setText(currentName);
-            panelScroll.add(workoutButton);
-        
-        }
-        return panelScroll;
+        return workoutCollection;
     }
 
-    private String create_keyValue_pairs(ArrayList<String> workoutSeparations, ArrayList<String> pairCollections, String currentPair, int i) {
+    private void create_workout_pairs(ArrayList<String> pairCollections, HashMap<String, String> currentWorkout) {
+        for (String pair : pairCollections) {
+            String[] entry = pair.split(":");
+            currentWorkout.put(entry[0].trim(), entry[1].trim());
+        }
+    }
+
+    private void display_workout_buttons(JPanel panelScroll, ArrayList<HashMap> workoutCollection) {
+        for (HashMap hashMap : workoutCollection) {
+            try {
+                String currentPath = String.valueOf(hashMap.values().toArray()[2]);
+                String currentName = String.valueOf(hashMap.values().toArray()[0]);
+
+                // remove extra quotes from path
+                currentPath = currentPath.substring(1, currentPath.length() - 1);
+                currentName = currentName.substring(1, currentName.length() - 1);
+
+                workoutButton = new JButton(); // create current workout button
+                workoutButton = setWorkoutButtonIcon(currentPath, workoutButton);
+                workoutButton.setText(currentName);
+                workoutButton.setActionCommand("" + workoutButton.getText()); // add action command - buttons name(text)
+                workoutButton.addActionListener(buttonAction); // add unique action to each button
+                panelScroll.add(workoutButton);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
+    }
+
+    private String create_keyValue_pairs(ArrayList<String> workoutSeparations, ArrayList<String> pairCollections,
+            String currentPair, int i) {
         for (int k = 0; k < workoutSeparations.get(i).length(); k++) {
             if (workoutSeparations.get(i).charAt(k) == ',') {
                 // add key, value pare to pairCollections
                 pairCollections.add(currentPair);
                 currentPair = "";
-            }
-            else{
+            } else {
                 currentPair += String.valueOf(workoutSeparations.get(i).charAt(k));
             }
         }
@@ -243,4 +263,18 @@ public class MyWokrouts extends JFrame implements ActionListener {
             go_to_addworkout();
         }
     }
+
+    Action buttonAction = new AbstractAction() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            buttonToDelete = e.getActionCommand();
+            System.out.println(buttonToDelete);
+            try {
+                db.delete_workout(conn, "1", currUser.get_current_user());
+
+            } catch (Exception err) {
+                System.out.println(err.getMessage());
+            }
+        }
+    };
 }

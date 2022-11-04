@@ -284,10 +284,30 @@ public class ConnectToDB {
          * 
          */
         String query = String.format("UPDATE my_users SET json_workouts = (CASE WHEN json_workouts IS NULL THEN '[]'::JSONB ELSE json_workouts END) || '%s'::JSONB WHERE username='%s';", value, current_user);
+        // String query = String.format("UPDATE my_users SET json_workouts = '%s'::JSON WHERE username='%s';", value, current_user);
         try {
             Statement statement = conn.createStatement();
             statement.executeUpdate(query);
             System.out.println("Workout iserted successfuly!");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void delete_workout(Connection conn, String workout_name, String current_user) {
+        String query = String.format("SELECT * FROM my_users WHERE json_workouts->'name' = '1'; ");
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet result = statement.executeQuery(query);
+            if (result.next()) {
+                System.out.println(result.getString(1));
+
+            }
+            while (result.next()) {
+                // System.out.println(result.getString(2));
+                System.out.println(result.getString("json_workouts"));
+            }
+            System.out.println("Success");
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }

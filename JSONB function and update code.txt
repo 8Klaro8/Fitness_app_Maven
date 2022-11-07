@@ -1,0 +1,12 @@
+create or replace function jsonb_remove_array_element(arr jsonb, element jsonb)
+returns jsonb language sql immutable as $$
+	select arr- (
+		select ordinality- 1
+		from jsonb_array_elements(arr) with ordinality
+		where value = element)::int
+$$;
+
+update my_users
+set json_workouts = jsonb_set(json_workouts, '{name}', jsonb_remove_array_element(json_workouts, '{"name":"1"}'))
+where json_workouts @> '[{"name":"1"}]' AND username = 'a'
+returning *;

@@ -283,8 +283,11 @@ public class ConnectToDB {
          * @param String current_user
          * 
          */
-        String query = String.format("UPDATE my_users SET json_workouts = (CASE WHEN json_workouts IS NULL THEN '[]'::JSONB ELSE json_workouts END) || '%s'::JSONB WHERE username='%s';", value, current_user);
+        // String query = String.format("UPDATE my_users SET json_workouts = (CASE WHEN json_workouts IS NULL THEN '[]'::JSONB ELSE json_workouts END) || '%s'::JSONB WHERE username='%s';", value, current_user);
         // String query = String.format("UPDATE my_users SET json_workouts = '%s'::JSON WHERE username='%s';", value, current_user);
+        // String query = String.format("UPDATE my_users SET json_workouts = json_workouts::jsonb || '%s' WHERE username = '%s';", value, current_user);
+        // String query = String.format("UPDATE my_users SET json_workouts = COALESCE(json_workouts, '[]'::JSONB) || '%s'::JSONB WHERE username = '%s';", value, current_user);
+        String query = String.format("UPDATE my_users SET json_workouts = COALESCE(json_workouts, '[]'::JSONB) || '%s' WHERE username = '%s';", value, current_user);
         try {
             Statement statement = conn.createStatement();
             statement.executeUpdate(query);
@@ -295,23 +298,35 @@ public class ConnectToDB {
     }
 
     public void delete_workout(Connection conn, String workout_name, String current_user) {
-        String query = String.format("SELECT * FROM my_users WHERE json_workouts->'name' = '1'; ");
+        String query = String.format("UPDATE my_users SET json_workouts = json_workouts - '%s' WHERE username = '%s';", workout_name, current_user);
         try {
             Statement statement = conn.createStatement();
-            ResultSet result = statement.executeQuery(query);
-            if (result.next()) {
-                System.out.println(result.getString(1));
+            statement.executeUpdate(query);
+            // System.out.println(result.getString("json_workouts"));
+            // if (result.next()) {
+            //     System.out.println(result.getString(1));
 
-            }
-            while (result.next()) {
-                // System.out.println(result.getString(2));
-                System.out.println(result.getString("json_workouts"));
-            }
+            // }
+            // while (result.next()) {
+            //     // System.out.println(result.getString(2));
+            //     System.out.println(result.getString("json_workouts"));
+            // }
             System.out.println("Success");
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
+
+// Select Json data:------------------------------------------------
+// SELECT json_workouts
+// FROM my_users, jsonb_array_elements(my_users.json_workouts) AS wk WHERE wk->>'name' = '1' AND username = 'b';
+
+// Select Json data 2:------------------------------------------------  
+// SELECT 
+//   jsonb_agg(j) FILTER (WHERE j->>'name' = '2')
+// FROM my_users t, jsonb_array_elements(json_workouts) j 
+// WHERE username = 'b' GROUP BY t.json_workouts;
+
 // Add json data-------------------------------------------------
 //     UPDATE jsontesting SET jsondata = (
 //     CASE
@@ -367,5 +382,28 @@ public class ConnectToDB {
             return null;
         }
         return null;
+    }
+
+    public void insert_workout(Connection conn, String value, String current_user) {
+        String query = String.format("INSERT INTO my_uers (json_workouts) VALUES '%s' WHERE username = '%s';", value, current_user);
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeQuery(query);
+            System.out.println("Workout inserted successfully!");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void clear_json_column(Connection conn, String current_user) {
+        String query = String.format("update my_users set json_workouts = null where username='%s';", current_user);
+        try {
+            Statement statmeent = conn.createStatement();
+            statmeent.executeQuery(query);
+            System.out.println("Json column has been cleared");
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 }

@@ -11,10 +11,13 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.border.*;
 
+import org.json.simple.JSONObject;
+
 import com.github.underscore.Json;
 import com.github.underscore.Json.JsonObject;
 import com.github.underscore.Json.JsonParser;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 
 import java.awt.*;
@@ -46,12 +49,16 @@ public class MyWokrouts extends JFrame implements ActionListener {
     public final String WORKOUT_PIC_2 = "fitnessappmaven\\src\\main\\java\\com\\klaro\\fitnessappmaven\\tempWorkoutIcons\\workout.png";
     public final String WORKOUT_PIC_3 = "fitnessappmaven\\src\\main\\java\\com\\klaro\\fitnessappmaven\\tempWorkoutIcons\\fitness.png";
 
+    // Gson
+    Gson myGson = new Gson();
+
     public MyWokrouts() throws IOException {
         // init. buttons
         button = new JButton("Love");
         back = new JButton("<Back");
         addWorkout = new JButton("Add Workout");
         removeWorkout = new JButton("Remove Workout");
+        removeWorkout.addActionListener(this);
         // initialize panels
         panelTop = new JPanel();
         panelBottom = new JPanel();
@@ -66,7 +73,7 @@ public class MyWokrouts extends JFrame implements ActionListener {
         set_top_panel(); // set panelTop: add back button to it and align it to right
         set_location(); // set size and locations of elements
         addActionEvent(); // adds action(s) to buttons
-        SwingUtilities.updateComponentTreeUI(this); // force refresh page to make everything visible right away.
+        refresh();
     }
 
     public void set_center_panel() {
@@ -108,11 +115,11 @@ public class MyWokrouts extends JFrame implements ActionListener {
     }
 
     private ArrayList<HashMap> prepare_workouts_by_selection(String workouts) {
-        int workoutsLength = workouts.length(); // length of workouts
-        String[][] workoutArray = new String[workoutsLength][3]; // initialize array to contain workouts with the length
-                                                                 // of workouts and fixed size of 3
+        // int workoutsLength = workouts.length(); // length of workouts
+        // String[][] workoutArray = new String[workoutsLength][3]; // initialize array to contain workouts with the length
+        //                                                          // of workouts and fixed size of 3
         // append workouts to String array
-        workouts = workouts.substring(1, (workouts.length() - 1)); // remove brackets
+        // workouts = workouts.substring(1, (workouts.length() - 1)); // remove brackets
         // split each worouts separately
 
         ArrayList<String> workoutSeparations = new ArrayList<String>(); // arraylist to contain separated workouts
@@ -161,6 +168,8 @@ public class MyWokrouts extends JFrame implements ActionListener {
                 workoutButton.setText(currentName);
                 workoutButton.setActionCommand("" + workoutButton.getText()); // add action command - buttons name(text)
                 workoutButton.addActionListener(buttonAction); // add unique action to each button
+                SwingUtilities.updateComponentTreeUI(this); // force refresh page to make everything visible right away.
+
                 panelScroll.add(workoutButton);
             } catch (Exception e) {
                 System.out.println(e.getMessage());
@@ -183,6 +192,15 @@ public class MyWokrouts extends JFrame implements ActionListener {
     }
 
     private ArrayList separate_workout(ArrayList<String> workoutSeparations, String currentSubs, String testString) {
+        /**
+         * Removes the brackets from the json string and separates the workouts by
+         * comma,
+         * then appends the separated results to 'workoutSeparations'
+         * 
+         * @param ArrayList<String> workoutSeparations
+         * @param String            currentSubs
+         * @param String            testString
+         */
         int beginIndex = 0; // begin index to of the substing
         int endIndex = 0;// end index to of the substing
         for (int i = 0; i < testString.length(); i++) {
@@ -245,10 +263,44 @@ public class MyWokrouts extends JFrame implements ActionListener {
         new AddWorkout();
     }
 
+    public void refresh() throws IOException {
+        SwingUtilities.updateComponentTreeUI(this); // force refresh page to make everything visible right away.
+        this.invalidate();
+        this.validate();
+        this.repaint();
+    }
+
     // add action event
     public void addActionEvent() {
         back.addActionListener(this);
         addWorkout.addActionListener(this);
+    }
+
+    public void removeAndReorganizeWorkout() {
+        try {
+            ArrayList<HashMap> workoutCollectionDelete;
+            String jsonData = db.read_workout(conn, currUser.get_current_user());
+            workoutCollectionDelete = prepare_workouts_by_selection(jsonData);
+
+            for (HashMap hashMap : workoutCollectionDelete) {
+                String currNameValue = String.valueOf(hashMap.values().iterator().next());
+                currNameValue = currNameValue.substring(1, currNameValue.length() - 1);
+                if (currNameValue.equals(String.valueOf(buttonToDelete))) {
+                    // if json data contains the name of the given button name then... delete
+                    workoutCollectionDelete.remove(hashMap);
+                    // String updatedJsonValue = myGson.toJson(workoutCollectionDelete);
+                    db.clear_json_column(conn, currUser.get_current_user());
+                    for (HashMap hashMap2 : workoutCollectionDelete) {
+                        String stringHashmap = String.valueOf(hashMap2);
+                        String replaced = stringHashmap.replace("=", ":");
+                        db.add_workout(conn, replaced, currUser.get_current_user());
+                    }
+                }
+            }
+            refresh();
+        } catch (Exception err) {
+            System.out.println(err.getMessage());
+        }
     }
 
     @Override
@@ -261,20 +313,17 @@ public class MyWokrouts extends JFrame implements ActionListener {
             }
         } else if (e.getSource() == addWorkout) {
             go_to_addworkout();
+        } else if (e.getSource() == removeWorkout) {
+            removeAndReorganizeWorkout();
+            System.out.println("Remove button pressed");
         }
     }
 
     Action buttonAction = new AbstractAction() {
         @Override
         public void actionPerformed(ActionEvent e) {
-            buttonToDelete = e.getActionCommand();
-            System.out.println(buttonToDelete);
-            try {
-                db.delete_workout(conn, "1", currUser.get_current_user());
-
-            } catch (Exception err) {
-                System.out.println(err.getMessage());
-            }
+            buttonToDelete = e.getActionCommand(); // set 'buttonToDelete' equal to the clicked button's name
+            System.out.println("selected button: " + buttonToDelete);
         }
     };
 }

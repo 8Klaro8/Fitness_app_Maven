@@ -82,10 +82,6 @@ public final class Main {
         // This is how to add and read
         // workout------------------------------------------------------
 
-        // db.remove_column(conn, "workouts");
-        // db.add_column(conn, "workouts", "TEXT[][]");
-        // db.add_workout(conn, "my_users", work_dict, current_user);
-
         // System.getenv("PASSWORD"));
         // db.create_account_table(conn, "my_users");
         // db.insert_row(conn, "employee", "employee_2", "Jani street 40.");

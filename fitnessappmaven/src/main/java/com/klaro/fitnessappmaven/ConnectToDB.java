@@ -291,7 +291,6 @@ public class ConnectToDB {
         try {
             Statement statement = conn.createStatement();
             statement.executeUpdate(query);
-            System.out.println("Workout iserted successfuly!");
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -389,7 +388,6 @@ public class ConnectToDB {
         try {
             Statement statement = conn.createStatement();
             statement.executeQuery(query);
-            System.out.println("Workout inserted successfully!");
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }

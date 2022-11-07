@@ -10,8 +10,10 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.border.*;
+import javax.swing.event.MouseInputListener;
 
 import org.json.simple.JSONObject;
+import org.w3c.dom.events.MouseEvent;
 
 import com.github.underscore.Json;
 import com.github.underscore.Json.JsonObject;
@@ -34,7 +36,7 @@ import java.util.Map;
  */
 // TODO - make horizotal scrolling vanish
 
-public class MyWokrouts extends JFrame implements ActionListener {
+public class MyWokrouts extends JFrame implements ActionListener, MouseInputListener {
     String buttonToDelete = "";// temp solution for preserving selected workout - for deletion
     // init. button(s) and panel(s)
     JButton button, back, test, workoutButton, addWorkout, removeWorkout;
@@ -168,6 +170,7 @@ public class MyWokrouts extends JFrame implements ActionListener {
                 workoutButton.setText(currentName);
                 workoutButton.setActionCommand("" + workoutButton.getText()); // add action command - buttons name(text)
                 workoutButton.addActionListener(buttonAction); // add unique action to each button
+                workoutButton.addMouseListener(this); // add mouse listener
                 SwingUtilities.updateComponentTreeUI(this); // force refresh page to make everything visible right away.
 
                 panelScroll.add(workoutButton);
@@ -297,7 +300,9 @@ public class MyWokrouts extends JFrame implements ActionListener {
                     }
                 }
             }
-            refresh();
+
+            // panelScroll = create_scroll_panel();
+            // this.add(BorderLayout.WEST, new JScrollPane(panelScroll));
         } catch (Exception err) {
             System.out.println(err.getMessage());
         }
@@ -316,6 +321,15 @@ public class MyWokrouts extends JFrame implements ActionListener {
         } else if (e.getSource() == removeWorkout) {
             removeAndReorganizeWorkout();
             System.out.println("Remove button pressed");
+            try {
+                // TODO - find better solution
+                JFrame newFrame = new MyWokrouts();
+                newFrame.setVisible(true);
+                this.dispose();
+
+            } catch (Exception err) {
+                System.out.println(err.getMessage());
+            }
         }
     }
 
@@ -323,7 +337,51 @@ public class MyWokrouts extends JFrame implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             buttonToDelete = e.getActionCommand(); // set 'buttonToDelete' equal to the clicked button's name
-            System.out.println("selected button: " + buttonToDelete);
         }
     };
+
+    @Override
+    public void mouseClicked(java.awt.event.MouseEvent e) {
+        System.out.println(e.getButton());
+        if (e.getClickCount() == 2) {
+            // Go into workout that has been clicked
+        }
+        
+    }
+
+    @Override
+    public void mousePressed(java.awt.event.MouseEvent e) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void mouseReleased(java.awt.event.MouseEvent e) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void mouseEntered(java.awt.event.MouseEvent e) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void mouseExited(java.awt.event.MouseEvent e) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void mouseDragged(java.awt.event.MouseEvent e) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void mouseMoved(java.awt.event.MouseEvent e) {
+        // TODO Auto-generated method stub
+        
+    }
 }

@@ -51,6 +51,8 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
     public final String WORKOUT_PIC_2 = "fitnessappmaven\\src\\main\\java\\com\\klaro\\fitnessappmaven\\tempWorkoutIcons\\workout.png";
     public final String WORKOUT_PIC_3 = "fitnessappmaven\\src\\main\\java\\com\\klaro\\fitnessappmaven\\tempWorkoutIcons\\fitness.png";
 
+    int elementCounter = -1;
+
     // Gson
     Gson myGson = new Gson();
 
@@ -290,9 +292,9 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
         addWorkout.addActionListener(this);
     }
 
-    public void go_to_clicked_workout() {
+    public void go_to_clicked_workout(int elementCounter) {
         this.dispose();
-        new InWorkout(buttonToDelete);
+        new InWorkout(buttonToDelete, elementCounter);
     }
 
     public void removeAndReorganizeWorkout() {
@@ -357,7 +359,25 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
     public void mouseClicked(java.awt.event.MouseEvent e) {
         if (e.getClickCount() == 2) {
             // Go into workout that has been clicked
-            go_to_clicked_workout();
+            ArrayList<HashMap> workoutCollection;
+            try {
+                String jsonData = db.read_workout(conn, currUser.get_current_user());
+            workoutCollection = prepare_workouts_by_selection(jsonData);
+
+            for (HashMap hashMap : workoutCollection) {
+                elementCounter++;
+                String currNameValue = String.valueOf(hashMap.values().iterator().next());
+                currNameValue = currNameValue.substring(1, currNameValue.length() - 1);
+                if (currNameValue.equals(String.valueOf(buttonToDelete))) {
+                    break;
+                }
+            }
+            go_to_clicked_workout(elementCounter);
+
+            } catch (Exception err) {
+                System.out.println(err.getMessage());
+            }
+            
         }
         
     }

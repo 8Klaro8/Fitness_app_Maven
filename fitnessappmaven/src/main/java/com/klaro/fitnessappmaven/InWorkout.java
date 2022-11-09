@@ -32,8 +32,11 @@ public class InWorkout extends JFrame implements ActionListener, java.awt.event.
     Connection conn = db.connect_to_db("accounts", "postgres", System.getenv("PASSWORD"));
     CurrentUser currUser = new CurrentUser();
 
-    public InWorkout(String clickedButton) {
+    int elementCounter2;
 
+    public InWorkout(String clickedButton, int elementCounter) {
+
+        elementCounter2 = elementCounter;
         backButton = new JButton();
         editWorkoutName = new JButton("Edit Workout title");
         editWorkoutName
@@ -316,7 +319,7 @@ public class InWorkout extends JFrame implements ActionListener, java.awt.event.
             panelCenter.revalidate();
             panelCenter.repaint();
             try {
-                db.update_workout_name(conn, newWorkoutName, currUser.get_current_user(), workoutName.getText());
+                db.update_workout_name(conn, newWorkoutName, currUser.get_current_user(), workoutName.getText(), elementCounter2);
 
             } catch (Exception err) {
                 System.out.println(err.getMessage());

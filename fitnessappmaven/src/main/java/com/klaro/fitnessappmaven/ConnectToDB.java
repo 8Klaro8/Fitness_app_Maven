@@ -404,4 +404,15 @@ public class ConnectToDB {
             System.out.println(e.getMessage());
         }
     }
+
+    public void update_workout_name(Connection conn, String value, String current_user, String currentWorkoutName) {
+        String query = String.format("UPDATE my_users SET json_workouts = JSONB_SET(json_workouts,'{name}','\"LOL\"') WHERE username='%s' AND '{name}' = '%s';", value, current_user, currentWorkoutName);
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeUpdate(query);
+            System.out.println("Updated Json");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
 }

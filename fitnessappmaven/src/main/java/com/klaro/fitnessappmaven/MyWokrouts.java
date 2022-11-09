@@ -39,7 +39,7 @@ import java.util.Map;
 public class MyWokrouts extends JFrame implements ActionListener, MouseInputListener {
     String buttonToDelete = "";// temp solution for preserving selected workout - for deletion
     // init. button(s) and panel(s)
-    JButton button, back, test, workoutButton, addWorkout, removeWorkout;
+    JButton button, backButton, test, workoutButton, addWorkout, removeWorkout;
     JPanel panelTop, panelBottom, panelRight, panelCenter, panelScroll;
 
     ConnectToDB db = new ConnectToDB();
@@ -57,7 +57,7 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
     public MyWokrouts() throws IOException {
         // init. buttons
         button = new JButton("Love");
-        back = new JButton("<Back");
+        backButton = new JButton("<Back");
         addWorkout = new JButton("Add Workout");
         removeWorkout = new JButton("Remove Workout");
         removeWorkout.addActionListener(this);
@@ -68,6 +68,7 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
         panelCenter = new JPanel();
         panelScroll = create_scroll_panel();
         panelTop.setPreferredSize(new Dimension(200, 20));
+
         // functions
         setup(); // call setup - sets up the basics for this.JFrame
         // set_panel_color(); // set color of panels
@@ -93,14 +94,14 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
             JPanel pan = new JPanel();
             panelTop.add(pan);
         }
-        panelTop.add(back);
+        panelTop.add(backButton);
         panelTop.setPreferredSize(new Dimension(100, 30));
     }
 
     public JPanel create_scroll_panel() throws IOException {
         JPanel panelScroll = new JPanel();
         // panelScroll.setBorder(new EmptyBorder(new Insets(10,10,10,20)));
-        panelScroll.setBorder(new EmptyBorder(10, 10, 10, 25));
+        // panelScroll.setBorder(new EmptyBorder(10, 10, 10, 25));
 
         // Read workout form DB based on current user
         String workouts = db.read_workout(conn, currUser.get_current_user()); // get workouts from DB
@@ -108,22 +109,55 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
             JOptionPane.showMessageDialog(this, "There are no workouts added yet.");
             go_to_addworkout();
         }
-        ArrayList<HashMap> workoutCollection = prepare_workouts_by_selection(workouts);
         // loop thru workout HashMaps and get out: path
-        panelScroll.setLayout(new GridLayout(workoutCollection.size(), 1, 10, 10));
-        display_workout_buttons(panelScroll, workoutCollection);
+        ArrayList<HashMap> workoutCollection = prepare_workouts_by_selection(workouts);
+        // panelScroll.setLayout(new GridLayout(workoutCollection.size(), 1, 10, 10));
+        panelScroll.setLayout(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        display_workout_buttons(panelScroll, workoutCollection, c);
 
         return panelScroll;
     }
 
-    private ArrayList<HashMap> prepare_workouts_by_selection(String workouts) {
-        // int workoutsLength = workouts.length(); // length of workouts
-        // String[][] workoutArray = new String[workoutsLength][3]; // initialize array to contain workouts with the length
-        //                                                          // of workouts and fixed size of 3
-        // append workouts to String array
-        // workouts = workouts.substring(1, (workouts.length() - 1)); // remove brackets
-        // split each worouts separately
+    private void display_workout_buttons(JPanel panelScroll, ArrayList<HashMap> workoutCollection, GridBagConstraints c) {
+        for (HashMap hashMap : workoutCollection) {
+            try {
+                String currentPath = String.valueOf(hashMap.values().toArray()[2]);
+                String currentName = String.valueOf(hashMap.values().toArray()[0]);
 
+                // remove extra quotes from path
+                currentPath = currentPath.substring(1, currentPath.length() - 1);
+                currentName = currentName.substring(1, currentName.length() - 1);
+
+                workoutButton = new JButton(); // create current workout button
+                workoutButton = setWorkoutButtonIcon(currentPath, workoutButton);
+                workoutButton.setText(currentName);
+                workoutButton.setActionCommand("" + workoutButton.getText()); // add action command - buttons name(text)
+                workoutButton.addActionListener(buttonAction); // add unique action to each button
+                workoutButton.addMouseListener(this); // add mouse listener
+                SwingUtilities.updateComponentTreeUI(this); // force refresh page to make everything visible right away.
+
+                // c.gridx = 1;
+                // c.ipady = 10;
+                // c.ipadx = 5;
+                c.fill = GridBagConstraints.BOTH;
+                // request any extra vertical space
+                c.weighty = 1.0;
+                // bottom of space
+                c.anchor = GridBagConstraints.PAGE_START;
+                // top padding
+                c.insets = new Insets(10, 0, 0, 0);
+                // column 2
+                c.gridx = 1;
+                // c.insets = new Insets(5,0,5,0);
+                panelScroll.add(workoutButton, c);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
+    }
+
+    private ArrayList<HashMap> prepare_workouts_by_selection(String workouts) {
         ArrayList<String> workoutSeparations = new ArrayList<String>(); // arraylist to contain separated workouts
         String currentSubs = ""; // current substring
         workoutSeparations = separate_workout(workoutSeparations, currentSubs, workouts); // separates each workout
@@ -155,30 +189,7 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
         }
     }
 
-    private void display_workout_buttons(JPanel panelScroll, ArrayList<HashMap> workoutCollection) {
-        for (HashMap hashMap : workoutCollection) {
-            try {
-                String currentPath = String.valueOf(hashMap.values().toArray()[2]);
-                String currentName = String.valueOf(hashMap.values().toArray()[0]);
 
-                // remove extra quotes from path
-                currentPath = currentPath.substring(1, currentPath.length() - 1);
-                currentName = currentName.substring(1, currentName.length() - 1);
-
-                workoutButton = new JButton(); // create current workout button
-                workoutButton = setWorkoutButtonIcon(currentPath, workoutButton);
-                workoutButton.setText(currentName);
-                workoutButton.setActionCommand("" + workoutButton.getText()); // add action command - buttons name(text)
-                workoutButton.addActionListener(buttonAction); // add unique action to each button
-                workoutButton.addMouseListener(this); // add mouse listener
-                SwingUtilities.updateComponentTreeUI(this); // force refresh page to make everything visible right away.
-
-                panelScroll.add(workoutButton);
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-        }
-    }
 
     private String create_keyValue_pairs(ArrayList<String> workoutSeparations, ArrayList<String> pairCollections,
             String currentPair, int i) {
@@ -275,8 +286,13 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
 
     // add action event
     public void addActionEvent() {
-        back.addActionListener(this);
+        backButton.addActionListener(this);
         addWorkout.addActionListener(this);
+    }
+
+    public void go_to_clicked_workout() {
+        this.dispose();
+        new InWorkout(buttonToDelete);
     }
 
     public void removeAndReorganizeWorkout() {
@@ -300,9 +316,6 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
                     }
                 }
             }
-
-            // panelScroll = create_scroll_panel();
-            // this.add(BorderLayout.WEST, new JScrollPane(panelScroll));
         } catch (Exception err) {
             System.out.println(err.getMessage());
         }
@@ -310,7 +323,7 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == back) {
+        if (e.getSource() == backButton) {
             try {
                 go_back_to_homesite();// leads to home page
             } catch (Exception err) {
@@ -322,7 +335,7 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
             removeAndReorganizeWorkout();
             System.out.println("Remove button pressed");
             try {
-                // TODO - find better solution
+                // TODO - find better solution for refreshing page after deletion
                 JFrame newFrame = new MyWokrouts();
                 newFrame.setVisible(true);
                 this.dispose();
@@ -342,9 +355,9 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
 
     @Override
     public void mouseClicked(java.awt.event.MouseEvent e) {
-        System.out.println(e.getButton());
         if (e.getClickCount() == 2) {
             // Go into workout that has been clicked
+            go_to_clicked_workout();
         }
         
     }

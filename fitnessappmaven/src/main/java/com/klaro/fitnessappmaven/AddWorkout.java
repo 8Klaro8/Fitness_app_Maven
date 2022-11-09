@@ -22,7 +22,7 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
     JLabel workoutTitleLabel;
     JTextField workoutTitleInput;
     JPanel centerPanel, north, west, east, south, workoutScrollPanel, topPanel, midPanel, emptyPanel, bottomPanel;
-    JButton button, button2, button3, addWorkout;
+    JButton button, button2, button3, addWorkout, backButton;
     WorkoutList workoList;
     JComboBox jCombo;
     Object selectedWorkoutType;
@@ -41,16 +41,17 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
         workoutTitleInput = new JTextField();
         workoutTitleInput.setPreferredSize(new Dimension(150, 30));
         // init. buttons
-
+        backButton = new JButton("<Back");
         // init. panels
         workoutScrollPanel = create_workoutScrollPanel();
         centerPanel = create_center_panel();
         north = new JPanel();
+        ;
         west = new JPanel();
         east = new JPanel();
         south = new JPanel();
 
-        north.setPreferredSize(new Dimension(50, 0));
+        north.setPreferredSize(new Dimension(50, 30));
         west.setPreferredSize(new Dimension(100, 0));
         east.setPreferredSize(new Dimension(100, 0));
         south.setPreferredSize(new Dimension(50, 0));
@@ -58,8 +59,18 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
         // functions
         setup(); // call setup - sets up the basics for this.JFrame
         create_center_panel();
+        set_north_panel(north);
         add_comp_to_main_frame();
         SwingUtilities.updateComponentTreeUI(this); // force refresh page to make everything visible right away.
+    }
+
+    public void set_north_panel(JPanel north) {
+        north.setLayout(new GridLayout(1, 4, 10, 10));
+        for (int i = 0; i < 3; i++) {
+            north.add(new JPanel());
+        }
+        backButton.addActionListener(this);
+        north.add(backButton);
     }
 
     public JPanel create_workoutScrollPanel() {
@@ -120,7 +131,6 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
         this.add(BorderLayout.WEST, west);
         this.add(BorderLayout.EAST, east);
         this.add(BorderLayout.SOUTH, south);
-
         this.add(BorderLayout.CENTER, centerPanel);
     }
 
@@ -143,9 +153,9 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
         return button;
     }
 
-    public void go_back_to_homesite() throws IOException {
+    public void go_back_to_my_workouts() throws IOException {
         this.dispose();
-        new HomeSite();
+        new MyWokrouts();
     }
 
     @Override
@@ -193,7 +203,7 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
                                                                                            // using Gson) to current
                                                                                            // user
                         JOptionPane.showMessageDialog(this, "Workout added successfuly!");
-                        go_back_to_homesite();
+                        go_back_to_my_workouts();
                     } catch (Exception err) {
                         System.out.println(err.getMessage());
                     }
@@ -213,6 +223,13 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
 
             }
 
+        }
+        if (e.getSource() == backButton) {
+            try {
+                go_back_to_my_workouts();
+            } catch (Exception err) {
+                System.out.println(err.getMessage());
+            }
         }
 
     }

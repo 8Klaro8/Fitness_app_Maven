@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.security.KeyStore.Entry;
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,44 +42,56 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
     // init. button(s) and panel(s)
     JButton button, backButton, test, workoutButton, addWorkout, removeWorkout;
     JPanel panelTop, panelBottom, panelRight, panelCenter, panelScroll;
-
+    // connect and get user
     ConnectToDB db = new ConnectToDB();
     Connection conn = db.connect_to_db("accounts", "postgres", System.getenv("PASSWORD"));
     CurrentUser currUser = new CurrentUser();
-
     // paths
     public final String WORKOUT_PIC_1 = "fitnessappmaven\\src\\main\\java\\com\\klaro\\fitnessappmaven\\tempWorkoutIcons\\yoga.png";
     public final String WORKOUT_PIC_2 = "fitnessappmaven\\src\\main\\java\\com\\klaro\\fitnessappmaven\\tempWorkoutIcons\\workout.png";
     public final String WORKOUT_PIC_3 = "fitnessappmaven\\src\\main\\java\\com\\klaro\\fitnessappmaven\\tempWorkoutIcons\\fitness.png";
-
-    int elementCounter = -1;
-
-    // Gson
-    Gson myGson = new Gson();
+    String allWorkoutName = db.read_all_workout_name(conn, currUser.get_current_user());
+    Gson myGson = new Gson();// Gson
 
     public MyWokrouts() throws IOException {
         // init. buttons
-        button = new JButton("Love");
-        backButton = new JButton("<Back");
-        addWorkout = new JButton("Add Workout");
-        removeWorkout = new JButton("Remove Workout");
+        init_buttons();
+        // add action listener
         removeWorkout.addActionListener(this);
         // initialize panels
-        panelTop = new JPanel();
-        panelBottom = new JPanel();
-        panelRight = new JPanel();
-        panelCenter = new JPanel();
-        panelScroll = create_scroll_panel();
+        init_panels();
         panelTop.setPreferredSize(new Dimension(200, 20));
-
         // functions
         setup(); // call setup - sets up the basics for this.JFrame
+        if_no_workout_then_redirect();// checking if there is any workout
         // set_panel_color(); // set color of panels
         set_center_panel();
         set_top_panel(); // set panelTop: add back button to it and align it to right
         set_location(); // set size and locations of elements
         addActionEvent(); // adds action(s) to buttons
         refresh();
+    }
+
+    private void if_no_workout_then_redirect() {
+        if (allWorkoutName.length() < 3) {
+            JOptionPane.showMessageDialog(this, "No workout added yet");
+            go_to_addworkout();
+        }
+    }
+
+    private void init_panels() throws IOException {
+        panelTop = new JPanel();
+        panelBottom = new JPanel();
+        panelRight = new JPanel();
+        panelCenter = new JPanel();
+        panelScroll = create_scroll_panel();
+    }
+
+    private void init_buttons() {
+        button = new JButton("Love");
+        backButton = new JButton("<Back");
+        addWorkout = new JButton("Add Workout");
+        removeWorkout = new JButton("Remove Workout");
     }
 
     public void set_center_panel() {
@@ -102,136 +115,60 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
 
     public JPanel create_scroll_panel() throws IOException {
         JPanel panelScroll = new JPanel();
-        // panelScroll.setBorder(new EmptyBorder(new Insets(10,10,10,20)));
-        // panelScroll.setBorder(new EmptyBorder(10, 10, 10, 25));
+        // set layout
+        panelScroll.setLayout(new GridLayout(allWorkoutName.length(), 1, 10, 10));
+        // read workout datas - name,type,path
+        ArrayList<String> collectedWorkoutNames = separate_collect_workout_datas(db.read_all_workout_name(conn, currUser.get_current_user()));
+        ArrayList<String> collectedWorkoutTypes = separate_collect_workout_datas(db.read_all_workout_type(conn, currUser.get_current_user()));
+        ArrayList<String> collectedWorkoutPaths = separate_collect_workout_datas(db.read_all_workout_path(conn, currUser.get_current_user()));
+        JButton currWorkoutButton;
 
-        // Read workout form DB based on current user
-        String workouts = db.read_workout(conn, currUser.get_current_user()); // get workouts from DB
-        if (workouts == null) {
-            JOptionPane.showMessageDialog(this, "There are no workouts added yet.");
-            go_to_addworkout();
-        }
-        // loop thru workout HashMaps and get out: path
-        ArrayList<HashMap> workoutCollection = prepare_workouts_by_selection(workouts);
-        // panelScroll.setLayout(new GridLayout(workoutCollection.size(), 1, 10, 10));
-        panelScroll.setLayout(new GridBagLayout());
-        GridBagConstraints c = new GridBagConstraints();
-        display_workout_buttons(panelScroll, workoutCollection, c);
-
+        create_workout_buttons(panelScroll, collectedWorkoutNames, collectedWorkoutPaths);
         return panelScroll;
     }
 
-    private void display_workout_buttons(JPanel panelScroll, ArrayList<HashMap> workoutCollection, GridBagConstraints c) {
-        for (HashMap hashMap : workoutCollection) {
-            try {
-                String currentPath = String.valueOf(hashMap.values().toArray()[2]);
-                String currentName = String.valueOf(hashMap.values().toArray()[0]);
+    private void create_workout_buttons(JPanel panelScroll, ArrayList<String> collectedWorkoutNames,
+            ArrayList<String> collectedWorkoutPaths) {
+        JButton currWorkoutButton;
+        for (int i = 0; i < collectedWorkoutNames.size(); i++) {
+            currWorkoutButton = new JButton(collectedWorkoutNames.get(i));
+            currWorkoutButton = setWorkoutButtonIcon(collectedWorkoutPaths.get(i), currWorkoutButton);
+            currWorkoutButton.addActionListener(buttonAction);
+            panelScroll.add(currWorkoutButton);
+        }
+    }
 
-                // remove extra quotes from path
-                currentPath = currentPath.substring(1, currentPath.length() - 1);
-                currentName = currentName.substring(1, currentName.length() - 1);
-
-                workoutButton = new JButton(); // create current workout button
-                workoutButton = setWorkoutButtonIcon(currentPath, workoutButton);
-                workoutButton.setText(currentName);
-                workoutButton.setActionCommand("" + workoutButton.getText()); // add action command - buttons name(text)
-                workoutButton.addActionListener(buttonAction); // add unique action to each button
-                workoutButton.addMouseListener(this); // add mouse listener
-                SwingUtilities.updateComponentTreeUI(this); // force refresh page to make everything visible right away.
-
-                // c.gridx = 1;
-                // c.ipady = 10;
-                // c.ipadx = 5;
-                c.fill = GridBagConstraints.BOTH;
-                // request any extra vertical space
-                c.weighty = 1.0;
-                // bottom of space
-                c.anchor = GridBagConstraints.PAGE_START;
-                // top padding
-                c.insets = new Insets(10, 0, 0, 0);
-                // column 2
-                c.gridx = 1;
-                // c.insets = new Insets(5,0,5,0);
-                panelScroll.add(workoutButton, c);
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
+    private ArrayList<String> separate_collect_workout_datas(String inputed_method) {
+        ArrayList<String> collectedWorkoutDatas = new ArrayList<String>();
+        try {
+            int begin = -1;
+            int end = -1;
+            int commaCounter = 0;
+            String currentSubString = "";
+            boolean beginAdded = false;
+            for (int i = 0; i < inputed_method.length(); i++) {
+                if (inputed_method.charAt(i) == ',') {
+                    if (!(beginAdded)) {
+                        begin = i + 1;
+                        beginAdded = true;
+                    }
+                    commaCounter++;
+                    if (commaCounter == 2) {
+                        end = i;
+                        currentSubString = inputed_method.substring(begin, end);
+                        begin = i + 1;
+                        commaCounter = 1;
+                        collectedWorkoutDatas.add(currentSubString.trim());
+                    }
+                }
             }
+            return collectedWorkoutDatas;
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            System.out.println(e.getMessage());
+            return null;
         }
-    }
 
-    private ArrayList<HashMap> prepare_workouts_by_selection(String workouts) {
-        ArrayList<String> workoutSeparations = new ArrayList<String>(); // arraylist to contain separated workouts
-        String currentSubs = ""; // current substring
-        workoutSeparations = separate_workout(workoutSeparations, currentSubs, workouts); // separates each workout
-
-        // workout loop - as many times as many workouts given
-        ArrayList<String> pairCollections = new ArrayList<String>();
-        ArrayList<HashMap> workoutCollection = new ArrayList<HashMap>(); // collection of workout HashMaps
-
-        HashMap<String, String> currentWorkout = new HashMap<>(); // ready key value pairs
-        String currentPair = "";
-        for (int i = 0; i < workoutSeparations.size(); i++) { // number of workouts
-            currentPair = create_keyValue_pairs(workoutSeparations, pairCollections, currentPair, i);
-            pairCollections.add(currentPair); // add current workout pair to 'pairCollections'
-            currentPair = ""; // empty 'currentPair'
-            create_workout_pairs(pairCollections, currentWorkout);// read workout to add to UI, then clear ArrayList
-                                                                  // before add next workout.
-            pairCollections.clear(); // clear pairCollections after addition
-            workoutCollection.add(new HashMap<String, String>(currentWorkout)); // append currentWorkout as a new
-                                                                                // example to avoid 'reference trap'
-            currentWorkout.clear(); // after addition clear the 'container'
-        }
-        return workoutCollection;
-    }
-
-    private void create_workout_pairs(ArrayList<String> pairCollections, HashMap<String, String> currentWorkout) {
-        for (String pair : pairCollections) {
-            String[] entry = pair.split(":");
-            currentWorkout.put(entry[0].trim(), entry[1].trim());
-        }
-    }
-
-
-
-    private String create_keyValue_pairs(ArrayList<String> workoutSeparations, ArrayList<String> pairCollections,
-            String currentPair, int i) {
-        for (int k = 0; k < workoutSeparations.get(i).length(); k++) {
-            if (workoutSeparations.get(i).charAt(k) == ',') {
-                // add key, value pare to pairCollections
-                pairCollections.add(currentPair);
-                currentPair = "";
-            } else {
-                currentPair += String.valueOf(workoutSeparations.get(i).charAt(k));
-            }
-        }
-        return currentPair;
-    }
-
-    private ArrayList separate_workout(ArrayList<String> workoutSeparations, String currentSubs, String testString) {
-        /**
-         * Removes the brackets from the json string and separates the workouts by
-         * comma,
-         * then appends the separated results to 'workoutSeparations'
-         * 
-         * @param ArrayList<String> workoutSeparations
-         * @param String            currentSubs
-         * @param String            testString
-         */
-        int beginIndex = 0; // begin index to of the substing
-        int endIndex = 0;// end index to of the substing
-        for (int i = 0; i < testString.length(); i++) {
-            if (testString.charAt(i) == '{') {
-                beginIndex = i + 1;
-            } else if (testString.charAt(i) == '}') {
-                endIndex = (i);
-                currentSubs = testString.substring(beginIndex, endIndex);
-                workoutSeparations.add(currentSubs);
-                currentSubs = "";
-            } else {
-                currentSubs += String.valueOf(testString.charAt(i));
-            }
-        }
-        return workoutSeparations;
     }
 
     public void setup() {
@@ -254,13 +191,6 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
         this.add(BorderLayout.NORTH, panelTop);
     }
 
-    public void set_panel_color() {
-        panelTop.setBackground(Color.GREEN);
-        panelBottom.setBackground(Color.BLACK);
-        panelRight.setBackground(Color.RED);
-        panelCenter.setBackground(Color.PINK);
-    }
-
     public JButton setWorkoutButtonIcon(String picPath, JButton button) {
         ImageIcon imageIcon = new ImageIcon(picPath);
         Image resizedImage = imageIcon.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
@@ -280,9 +210,7 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
     }
 
     public void refresh() throws IOException {
-        SwingUtilities.updateComponentTreeUI(this); // force refresh page to make everything visible right away.
-        this.invalidate();
-        this.validate();
+        this.revalidate();
         this.repaint();
     }
 
@@ -292,35 +220,9 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
         addWorkout.addActionListener(this);
     }
 
-    public void go_to_clicked_workout(int elementCounter) {
+    public void go_to_clicked_workout() {
         this.dispose();
-        new InWorkout(buttonToDelete, elementCounter);
-    }
-
-    public void removeAndReorganizeWorkout() {
-        try {
-            ArrayList<HashMap> workoutCollectionDelete;
-            String jsonData = db.read_workout(conn, currUser.get_current_user());
-            workoutCollectionDelete = prepare_workouts_by_selection(jsonData);
-
-            for (HashMap hashMap : workoutCollectionDelete) {
-                String currNameValue = String.valueOf(hashMap.values().iterator().next());
-                currNameValue = currNameValue.substring(1, currNameValue.length() - 1);
-                if (currNameValue.equals(String.valueOf(buttonToDelete))) {
-                    // if json data contains the name of the given button name then... delete
-                    workoutCollectionDelete.remove(hashMap);
-                    // String updatedJsonValue = myGson.toJson(workoutCollectionDelete);
-                    db.clear_json_column(conn, currUser.get_current_user());
-                    for (HashMap hashMap2 : workoutCollectionDelete) {
-                        String stringHashmap = String.valueOf(hashMap2);
-                        String replaced = stringHashmap.replace("=", ":");
-                        db.add_workout(conn, replaced, currUser.get_current_user());
-                    }
-                }
-            }
-        } catch (Exception err) {
-            System.out.println(err.getMessage());
-        }
+        new InWorkout(buttonToDelete);
     }
 
     @Override
@@ -333,17 +235,46 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
             }
         } else if (e.getSource() == addWorkout) {
             go_to_addworkout();
-        } else if (e.getSource() == removeWorkout) {
-            removeAndReorganizeWorkout();
-            System.out.println("Remove button pressed");
+        }else if (e.getSource() == removeWorkout) {
             try {
-                // TODO - find better solution for refreshing page after deletion
-                JFrame newFrame = new MyWokrouts();
-                newFrame.setVisible(true);
+                delete_selected_workout();
                 this.dispose();
+                new MyWokrouts();
+            } catch (IOException e1) {
+                System.out.println(e1.getMessage());
+            }
+        }
+    }
 
-            } catch (Exception err) {
-                System.out.println(err.getMessage());
+    private void delete_selected_workout() throws IOException {
+        // get the index of the chosen workout by it's name
+        ArrayList<String> collectedWorkoutNames = separate_collect_workout_datas(db.read_all_workout_name(conn, currUser.get_current_user()));
+        ArrayList<String> collectedWorkoutTypes = separate_collect_workout_datas(db.read_all_workout_type(conn, currUser.get_current_user()));
+        ArrayList<String> collectedWorkoutPaths = separate_collect_workout_datas(db.read_all_workout_path(conn, currUser.get_current_user()));
+        for (int i = 0; i < collectedWorkoutNames.size(); i++) {
+            if (collectedWorkoutNames.get(i).equals(buttonToDelete)) {
+                System.out.println("Index found!");
+                // get workout type and path from db by index
+                String typeToDelete = collectedWorkoutTypes.get(i);
+                String pathToDelete = collectedWorkoutPaths.get(i);
+                // delete items from ArrayList
+                for (int j = 0; j < collectedWorkoutNames.size(); j++) {
+                    if (collectedWorkoutNames.get(i).equals(buttonToDelete)) {
+                        collectedWorkoutNames.remove(i);
+                        collectedWorkoutTypes.remove(i);
+                        collectedWorkoutPaths.remove(i);
+                    }
+                    break;
+                }
+                // delete all from db before appending new value
+                db.remove_all_workout_data(conn, currUser.get_current_user());
+                // append values back to db
+                for (int j = 0; j < collectedWorkoutNames.size(); j++) {
+                    db.add_workout_name(conn, collectedWorkoutNames.get(j), currUser.get_current_user());
+                    db.add_workout_type(conn, collectedWorkoutTypes.get(j), currUser.get_current_user());
+                    db.add_workout_path(conn, collectedWorkoutPaths.get(j), currUser.get_current_user());
+                }
+
             }
         }
     }
@@ -352,69 +283,52 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
         @Override
         public void actionPerformed(ActionEvent e) {
             buttonToDelete = e.getActionCommand(); // set 'buttonToDelete' equal to the clicked button's name
+            System.out.println("Button clikced: " + buttonToDelete);
+            go_to_clicked_workout();
         }
     };
 
     @Override
     public void mouseClicked(java.awt.event.MouseEvent e) {
         if (e.getClickCount() == 2) {
-            // Go into workout that has been clicked
-            ArrayList<HashMap> workoutCollection;
-            try {
-                String jsonData = db.read_workout(conn, currUser.get_current_user());
-            workoutCollection = prepare_workouts_by_selection(jsonData);
-
-            for (HashMap hashMap : workoutCollection) {
-                elementCounter++;
-                String currNameValue = String.valueOf(hashMap.values().iterator().next());
-                currNameValue = currNameValue.substring(1, currNameValue.length() - 1);
-                if (currNameValue.equals(String.valueOf(buttonToDelete))) {
-                    break;
-                }
-            }
-            go_to_clicked_workout(elementCounter);
-
-            } catch (Exception err) {
-                System.out.println(err.getMessage());
-            }
             
         }
-        
+
     }
 
     @Override
     public void mousePressed(java.awt.event.MouseEvent e) {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
     public void mouseReleased(java.awt.event.MouseEvent e) {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
     public void mouseEntered(java.awt.event.MouseEvent e) {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
     public void mouseExited(java.awt.event.MouseEvent e) {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
     public void mouseDragged(java.awt.event.MouseEvent e) {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
     public void mouseMoved(java.awt.event.MouseEvent e) {
         // TODO Auto-generated method stub
-        
+
     }
 }

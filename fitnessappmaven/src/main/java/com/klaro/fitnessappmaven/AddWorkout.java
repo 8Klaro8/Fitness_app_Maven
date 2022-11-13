@@ -23,7 +23,7 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
     JTextField workoutTitleInput;
     JPanel centerPanel, north, west, east, south, workoutScrollPanel, topPanel, midPanel, emptyPanel, bottomPanel;
     JButton button, button2, button3, addWorkout, backButton;
-    WorkoutList workoList;
+    WorkoutList workoutList;
     JComboBox jCombo;
     Object selectedWorkoutType;
     HashMap<String, String> workoutHash = new HashMap<String, String>();
@@ -33,8 +33,11 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
     CurrentUser currentUser = new CurrentUser();
     Gson myGson = new Gson();
 
+    // workout datas to save
+    String workoutType, workoutPath, workoutName;
+
     public AddWorkout() {
-        workoList = new WorkoutList(); // workout icons
+        workoutList = new WorkoutList(); // workout icons
         // init. label(s)
         workoutTitleLabel = new JLabel("Workout's title", SwingConstants.CENTER);
         // init. entry(es)
@@ -46,7 +49,6 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
         workoutScrollPanel = create_workoutScrollPanel();
         centerPanel = create_center_panel();
         north = new JPanel();
-        ;
         west = new JPanel();
         east = new JPanel();
         south = new JPanel();
@@ -58,7 +60,7 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
 
         // functions
         setup(); // call setup - sets up the basics for this.JFrame
-        create_center_panel();
+        // create_center_panel();
         set_north_panel(north);
         add_comp_to_main_frame();
         SwingUtilities.updateComponentTreeUI(this); // force refresh page to make everything visible right away.
@@ -77,16 +79,16 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(3, 1, 5, 5));
         button = new JButton();
-        button = setWorkoutButtonIcon(workoList.WORKOUT_PIC_1, button);
+        button = setWorkoutButtonIcon(workoutList.WORKOUT_PIC_1, button);
 
         panel.add(button);
 
         button2 = new JButton();
-        button2 = setWorkoutButtonIcon(workoList.WORKOUT_PIC_2, button2);
+        button2 = setWorkoutButtonIcon(workoutList.WORKOUT_PIC_2, button2);
         panel.add(button2);
 
         button3 = new JButton();
-        button3 = setWorkoutButtonIcon(workoList.WORKOUT_PIC_3, button3);
+        button3 = setWorkoutButtonIcon(workoutList.WORKOUT_PIC_3, button3);
         panel.add(button3);
         // add listeners to buttons
         button.addActionListener(this);
@@ -166,7 +168,7 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
                 return;
             } else {
                 selectedWorkoutType = jCombo.getSelectedItem();
-                workoutHash.put("type", String.valueOf(selectedWorkoutType));
+                workoutType = String.valueOf(selectedWorkoutType);
             }
         }
     }
@@ -174,55 +176,43 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == button) {
-            workoutHash.put("path", String.valueOf(button.getIcon()));
+            workoutPath = String.valueOf(button.getIcon());
         }
         if (e.getSource() == button2) {
-            workoutHash.put("path", String.valueOf(button2.getIcon()));
+            workoutPath = String.valueOf(button2.getIcon());
         }
         if (e.getSource() == button3) {
-            workoutHash.put("path", String.valueOf(button3.getIcon()));
+            workoutPath = String.valueOf(button3.getIcon());
         }
         if (e.getSource() == addWorkout) {
-            String workoutName = workoutTitleInput.getText();
+            workoutName = workoutTitleInput.getText(); // get workout's name/title
+            // check if workout name already exists
+            if (workout_name_exists()) {
+                JOptionPane.showMessageDialog(this, "This workout name already exists!");
+                return;
+            }
             if (workoutName.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Please give a workout name.");
                 return;
             }
-            workoutHash.put("name", workoutName);
-            Object[] workoutHashArray = workoutHash.values().toArray();
-            if (workoutHashArray.length == 3) {
-                if (!(workoutHashArray[2].equals("Gym") || workoutHashArray[2].equals("Cardio")
-                        || workoutHashArray[2].equals("Street"))) {
-                    JOptionPane.showMessageDialog(this, "Please select workout.");
-                    return;
-                } else {
-                    String toJsonValue = myGson.toJson(workoutHash); // transforming HashMap to Json
-                    try {
-                        db.add_workout(conn, toJsonValue, currentUser.get_current_user()); // add workout(jsonified
-                                                                                           // HashMap
-                                                                                           // using Gson) to current
-                                                                                           // user
-                        JOptionPane.showMessageDialog(this, "Workout added successfuly!");
-                        go_back_to_my_workouts();
-                    } catch (Exception err) {
-                        System.out.println(err.getMessage());
-                    }
-                }
-            } else {
-                if (workoutHashArray.length != 3) {
-                    if (workoutHashArray[0].toString().length() < 30) {
-                        JOptionPane.showMessageDialog(this, "Please choose an icon.");
-                        return;
-                    } else {
-                        System.out.println(Arrays.toString(workoutHashArray));
-                        JOptionPane.showMessageDialog(this, "Please select workout type.");
-                        return;
-                    }
-
-                }
-
+            if (workoutPath == null) {
+                JOptionPane.showMessageDialog(this, "Please choose a workout icon.");
+                return;
             }
-
+            if (workoutType == null) {
+                JOptionPane.showMessageDialog(this, "Please choose a workout type.");
+                return;
+            } else {
+                try {
+                    db.add_workout_name(conn, workoutName, currentUser.get_current_user());
+                    db.add_workout_type(conn, workoutType, currentUser.get_current_user());
+                    db.add_workout_path(conn, workoutPath, currentUser.get_current_user());
+                    JOptionPane.showMessageDialog(this, "Workout added Successfuly!");
+                    go_back_to_my_workouts();
+                } catch (Exception err) {
+                    System.out.println(err.getMessage());
+                }
+            }
         }
         if (e.getSource() == backButton) {
             try {
@@ -231,11 +221,58 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
                 System.out.println(err.getMessage());
             }
         }
-
     }
 
     public String to_gson(HashMap myHash) {
         Gson gson = new Gson();
         return gson.toJson(myHash);
+    }
+
+    private ArrayList<String> separate_collect_workout_datas(String inputed_method) {
+        ArrayList<String> collectedWorkoutDatas = new ArrayList<String>();
+        try {
+            int begin = -1;
+            int end = -1;
+            int commaCounter = 0;
+            String currentSubString = "";
+            boolean beginAdded = false;
+            for (int i = 0; i < inputed_method.length(); i++) {
+                if (inputed_method.charAt(i) == ',') {
+                    if (!(beginAdded)) {
+                        begin = i + 1;
+                        beginAdded = true;
+                    }
+                    commaCounter++;
+                    if (commaCounter == 2) {
+                        end = i;
+                        currentSubString = inputed_method.substring(begin, end);
+                        begin = i + 1;
+                        commaCounter = 1;
+                        collectedWorkoutDatas.add(currentSubString.trim());
+                    }
+                }
+            }
+            return collectedWorkoutDatas;
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            System.out.println(e.getMessage());
+            return null;
+        }
+
+    }
+
+    public boolean workout_name_exists() {
+        try {
+            ArrayList<String> allWorkoutName = separate_collect_workout_datas(
+                    db.read_all_workout_name(conn, currentUser.get_current_user()));
+            for (String wName : allWorkoutName) {
+                if (wName.equalsIgnoreCase(workoutName)) {
+                    return true;
+                }
+            }
+        } catch (IOException e1) {
+            System.out.println(e1.getMessage());
+        }
+        return false;
     }
 }

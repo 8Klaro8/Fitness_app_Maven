@@ -1,6 +1,10 @@
 package com.klaro.fitnessappmaven;
 
 import java.sql.Statement;
+import java.util.ArrayList;
+
+import javax.ejb.SessionSynchronization;
+
 import java.lang.Thread.State;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -280,14 +284,22 @@ public class ConnectToDB {
          * 
          * @param Connection conn
          * @param String     work_dict
-         * @param String current_user
+         * @param String     current_user
          * 
          */
-        // String query = String.format("UPDATE my_users SET json_workouts = (CASE WHEN json_workouts IS NULL THEN '[]'::JSONB ELSE json_workouts END) || '%s'::JSONB WHERE username='%s';", value, current_user);
-        // String query = String.format("UPDATE my_users SET json_workouts = '%s'::JSON WHERE username='%s';", value, current_user);
-        // String query = String.format("UPDATE my_users SET json_workouts = json_workouts::jsonb || '%s' WHERE username = '%s';", value, current_user);
-        // String query = String.format("UPDATE my_users SET json_workouts = COALESCE(json_workouts, '[]'::JSONB) || '%s'::JSONB WHERE username = '%s';", value, current_user);
-        String query = String.format("UPDATE my_users SET json_workouts = COALESCE(json_workouts, '[]'::JSONB) || '%s' WHERE username = '%s';", value, current_user);
+        // String query = String.format("UPDATE my_users SET json_workouts = (CASE WHEN
+        // json_workouts IS NULL THEN '[]'::JSONB ELSE json_workouts END) || '%s'::JSONB
+        // WHERE username='%s';", value, current_user);
+        // String query = String.format("UPDATE my_users SET json_workouts = '%s'::JSON
+        // WHERE username='%s';", value, current_user);
+        // String query = String.format("UPDATE my_users SET json_workouts =
+        // json_workouts::jsonb || '%s' WHERE username = '%s';", value, current_user);
+        // String query = String.format("UPDATE my_users SET json_workouts =
+        // COALESCE(json_workouts, '[]'::JSONB) || '%s'::JSONB WHERE username = '%s';",
+        // value, current_user);
+        String query = String.format(
+                "UPDATE my_users SET json_workouts = COALESCE(json_workouts, '[]'::JSONB) || '%s' WHERE username = '%s';",
+                value, current_user);
         try {
             Statement statement = conn.createStatement();
             statement.executeUpdate(query);
@@ -297,18 +309,19 @@ public class ConnectToDB {
     }
 
     public void delete_workout(Connection conn, String workout_name, String current_user) {
-        String query = String.format("UPDATE my_users SET json_workouts = json_workouts - '%s' WHERE username = '%s';", workout_name, current_user);
+        String query = String.format("UPDATE my_users SET json_workouts = json_workouts - '%s' WHERE username = '%s';",
+                workout_name, current_user);
         try {
             Statement statement = conn.createStatement();
             statement.executeUpdate(query);
             // System.out.println(result.getString("json_workouts"));
             // if (result.next()) {
-            //     System.out.println(result.getString(1));
+            // System.out.println(result.getString(1));
 
             // }
             // while (result.next()) {
-            //     // System.out.println(result.getString(2));
-            //     System.out.println(result.getString("json_workouts"));
+            // // System.out.println(result.getString(2));
+            // System.out.println(result.getString("json_workouts"));
             // }
             System.out.println("Success");
         } catch (Exception e) {
@@ -316,26 +329,27 @@ public class ConnectToDB {
         }
     }
 
-// Select Json data:------------------------------------------------
-// SELECT json_workouts
-// FROM my_users, jsonb_array_elements(my_users.json_workouts) AS wk WHERE wk->>'name' = '1' AND username = 'b';
+    // Select Json data:------------------------------------------------
+    // SELECT json_workouts
+    // FROM my_users, jsonb_array_elements(my_users.json_workouts) AS wk WHERE
+    // wk->>'name' = '1' AND username = 'b';
 
-// Select Json data 2:------------------------------------------------  
-// SELECT 
-//   jsonb_agg(j) FILTER (WHERE j->>'name' = '2')
-// FROM my_users t, jsonb_array_elements(json_workouts) j 
-// WHERE username = 'b' GROUP BY t.json_workouts;
+    // Select Json data 2:------------------------------------------------
+    // SELECT
+    // jsonb_agg(j) FILTER (WHERE j->>'name' = '2')
+    // FROM my_users t, jsonb_array_elements(json_workouts) j
+    // WHERE username = 'b' GROUP BY t.json_workouts;
 
-// Add json data-------------------------------------------------
-//     UPDATE jsontesting SET jsondata = (
-//     CASE
-//         WHEN jsondata IS NULL THEN '[]'::JSONB
-//         ELSE jsondata
-//     END
-// ) || '["newString"]'::JSONB WHERE id = 7;
+    // Add json data-------------------------------------------------
+    // UPDATE jsontesting SET jsondata = (
+    // CASE
+    // WHEN jsondata IS NULL THEN '[]'::JSONB
+    // ELSE jsondata
+    // END
+    // ) || '["newString"]'::JSONB WHERE id = 7;
 
     public boolean username_exists(Connection conn, String table_name, String username) {
-        String query = String.format("SELECT username IN %s WHERE username='%s'", table_name, username); 
+        String query = String.format("SELECT username IN %s WHERE username='%s'", table_name, username);
         try {
             Statement statement = conn.createStatement();
             statement.executeQuery(query);
@@ -368,23 +382,9 @@ public class ConnectToDB {
         }
     }
 
-    public String read_workout(Connection conn, String username) {
-        String query = String.format("select json_workouts from my_users where username='%s'", username);
-        try {
-            Statement statement = conn.createStatement();
-            ResultSet resSet = statement.executeQuery(query);
-            while (resSet.next()) {
-                return resSet.getString("json_workouts");
-            }
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            return null;
-        }
-        return null;
-    }
-
     public void insert_workout(Connection conn, String value, String current_user) {
-        String query = String.format("INSERT INTO my_uers (json_workouts) VALUES '%s' WHERE username = '%s';", value, current_user);
+        String query = String.format("INSERT INTO my_uers (json_workouts) VALUES '%s' WHERE username = '%s';", value,
+                current_user);
         try {
             Statement statement = conn.createStatement();
             statement.executeQuery(query);
@@ -405,12 +405,117 @@ public class ConnectToDB {
         }
     }
 
-    public void update_workout_name(Connection conn, String value, String current_user, String currentWorkoutName, int elementCounter2) {
-        String query = String.format("UPDATE my_users SET json_workouts = JSONB_SET(json_workouts,'{%s, name}','%s') WHERE username='%s';", elementCounter2, value, current_user);
+
+    public String read_all_workout_name(Connection conn, String current_user) {
+        String workoutNames = new String();
+        String query = String.format("SELECT workout_name FROM my_users WHERE username = '%s'", current_user);
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            while (rs.next()) {
+                workoutNames += rs.getString("workout_name");
+            }
+            return workoutNames;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
+    public String read_all_workout_type(Connection conn, String current_user) {
+        String workoutTypes = new String();
+        String query = String.format("SELECT workout_type FROM my_users WHERE username = '%s'", current_user);
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            while (rs.next()) {
+                workoutTypes += rs.getString("workout_type");
+            }
+            return workoutTypes;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
+    public String read_all_workout_path(Connection conn, String current_user) {
+        String workoutPaths = new String();
+        String query = String.format("SELECT workout_path FROM my_users WHERE username = '%s'", current_user);
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            while (rs.next()) {
+                workoutPaths += rs.getString("workout_path");
+            }
+            return workoutPaths;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
+    public void add_workout_name(Connection conn, String workoutName, String current_user) {
+        String query = String.format("UPDATE my_users set workout_name = workout_name || '%s, ' WHERE username = '%s';", workoutName, current_user);
         try {
             Statement statement = conn.createStatement();
             statement.executeUpdate(query);
-            System.out.println("Updated Json");
+            System.out.println("Workout name added successfuly!");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        
+    }
+    public void add_workout_path(Connection conn, String workoutPath, String current_user) {
+        String query = String.format("UPDATE my_users set workout_path = workout_path || '%s, ' WHERE username = '%s';", workoutPath, current_user);
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeUpdate(query);
+            System.out.println("Workout path added successfuly!");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        
+    }
+
+    public void add_workout_type(Connection conn, String workoutType, String current_user) {
+        String query = String.format("UPDATE my_users set workout_type = workout_type || '%s, ' WHERE username = '%s';", workoutType, current_user);
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeUpdate(query);
+            System.out.println("Workout type added successfuly!");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        
+    }
+
+    public void insert_basic_values(Connection conn, String current_user) {
+        /**
+         * Inserts basic value, aka ", " to column, so it will be possible to append new data into it.
+         * 
+         * @param Connection conn
+         * @param String current_user
+         */
+        String query = String.format("update my_users set workout_name = concat(workout_name, ', ') where username = '%s'", current_user);
+        String query1 = String.format("update my_users set workout_type = concat(workout_type, ', ') where username = '%s'", current_user);
+        String query2 = String.format("update my_users set workout_path = concat(workout_path, ', ') where username = '%s'", current_user);
+        try {
+            Statement statemnt = conn.createStatement();
+            statemnt.executeUpdate(query);
+            statemnt.executeUpdate(query1);
+            statemnt.executeUpdate(query2);
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void remove_all_workout_data(Connection conn, String current_user) {
+        String query = String.format("UPDATE my_users SET workout_name = ', ', workout_type = ', ', workout_path = ', ' WHERE username='%s';", current_user);
+        try {
+            Statement statmeent = conn.createStatement();
+            statmeent.executeQuery(query);
+            System.out.println("Workout cleeared successfuly!");
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }

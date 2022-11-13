@@ -139,8 +139,11 @@ public class RegisterFrame extends JFrame implements ActionListener, LoginFormIn
                     boolean usernameExists = db.username_exists(conn, "my_users", username);
                     if (!(usernameExists)) {
                         db.add_user(conn, username, hashedPW, "null", "null", BASE_PROF_PIC);
+                        
                         // Login freshly registered user
                         currUserMethod.set_current_user(username);
+                        // Add start value to new user
+                        db.insert_basic_values(conn, currUserMethod.get_current_user());
                         go_back_to_homesite();
                         // TODO - show message only if user added indeed.
                         JOptionPane.showMessageDialog(this, "User: " + username + " has been registered!");

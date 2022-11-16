@@ -185,6 +185,7 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
             workoutPath = String.valueOf(button3.getIcon());
         }
         if (e.getSource() == addWorkout) {
+            // TODO check if workout name contians forbidden characters, like: ''
             workoutName = workoutTitleInput.getText(); // get workout's name/title
             // check if workout name already exists
             if (workout_name_exists()) {

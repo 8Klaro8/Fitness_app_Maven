@@ -7,6 +7,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
@@ -26,7 +27,9 @@ public class InWorkout extends JFrame implements ActionListener, java.awt.event.
     JButton backButton, editWorkoutName, editWorkoutType, done, done2;
     JLabel workoutName, workoutType;
     JTextField workoutNameTextField, workoutTypeTextField;
-    String path, name, type, currentWorkoutName;
+    String path, name, type, currentWorkoutName, currentWorkoutType;
+
+    ArrayList<String> chosenArrayList;
 
     ConnectToDB db = new ConnectToDB();
     Connection conn = db.connect_to_db("accounts", "postgres", System.getenv("PASSWORD"));
@@ -226,12 +229,10 @@ public class InWorkout extends JFrame implements ActionListener, java.awt.event.
         }
 
         else if (e.getSource() == editWorkoutType) {
-            String currentWorkoutType = workoutType.getText();
+            currentWorkoutType = workoutType.getText();
             workoutTypeTextField = new JTextField(currentWorkoutType);
-
             // Remove comps.
             panelCenter.removeAll();
-
             // append all components
             panelCenter.add(setWorkoutButtonIcon(path, new JButton()));
             panelCenter.add(workoutName);
@@ -258,7 +259,8 @@ public class InWorkout extends JFrame implements ActionListener, java.awt.event.
 
             // TODO update workout name in db
             try {
-                update_data_in_db(newWorkoutName);
+                update_data_in_db(newWorkoutName, currentWorkoutName, 1);
+
             } catch (Exception err) {
                 System.out.println(err.getMessage());
             }
@@ -266,6 +268,11 @@ public class InWorkout extends JFrame implements ActionListener, java.awt.event.
 
         else if (e.getSource() == done2) {
             String newWorkoutType = workoutTypeTextField.getText();
+            // checking if new workout type is correct
+            if (!(is_correct_type(newWorkoutType))) {
+                return;
+            }
+            newWorkoutType = makeFirstLetterBig(newWorkoutType);
             workoutType.setText(newWorkoutType);
 
             panelCenter.removeAll();
@@ -278,11 +285,91 @@ public class InWorkout extends JFrame implements ActionListener, java.awt.event.
 
             panelCenter.revalidate();
             panelCenter.repaint();
-        }
 
+            try {
+                update_data_in_db(newWorkoutType, currentWorkoutType, 2);
+            } catch (Exception err) {
+                System.out.println(err.getMessage());
+            }
+        }
     }
+
+    private String makeFirstLetterBig(String newWorkoutType) {
+        String bigLetter = newWorkoutType.substring(0, 1).toUpperCase();
+        String rest = newWorkoutType.substring(1, newWorkoutType.length());
+        newWorkoutType = bigLetter + rest;
+        return newWorkoutType;
+    }
+
+    public boolean is_correct_type(String newWorkoutType) {
+        if (!(newWorkoutType.equalsIgnoreCase("cardio") ||
+                newWorkoutType.equalsIgnoreCase("gym") ||
+                newWorkoutType.equalsIgnoreCase("street"))) {
+            JOptionPane.showMessageDialog(this, "Please choose either:\n\t-Street\n\t-Gym\n\t-Cardio");
+            return false;
+        }
+        return true;
+    }
+
+    public void update_data_in_db(String newWorkoutData, String currentWorkoutData, int indexNum) throws IOException {
+        // Collect workout datas
+        ArrayList<String> allWName = separate_collect_workout_datas(
+                db.read_all_workout_name(conn, currUser.get_current_user()));
+        ArrayList<String> allWType = separate_collect_workout_datas(
+                db.read_all_workout_type(conn, currUser.get_current_user()));
+        ArrayList<String> allWPath = separate_collect_workout_datas(
+                db.read_all_workout_path(conn, currUser.get_current_user()));
+        // use switch to switch between type and name
+        switch (indexNum) {
+            case 1:
+                chosenArrayList = new ArrayList<>(allWName);
+                update_old_data(newWorkoutData, currentWorkoutData, allWName, allWType, allWPath, 1);
+                break;
+            case 2:
+                chosenArrayList = new ArrayList<>(allWType);
+                update_old_data(newWorkoutData, currentWorkoutData, allWName, allWType, allWPath, 2);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void update_old_data(String newWorkoutData, String currentWorkoutData, ArrayList<String> allWName,
+            ArrayList<String> allWType, ArrayList<String> allWPath, int indexNum) throws IOException {
+        // If program finds the data we want to update, then it removes the old data and
+        // appends the updated data.
+        for (int i = 0; i < chosenArrayList.size(); i++) {
+            if (chosenArrayList.get(i).equalsIgnoreCase(currentWorkoutData)) {
+                chosenArrayList.remove(i);
+                chosenArrayList.add(i, newWorkoutData);
+            }
+        }
+        // Removes everything from db
+        db.remove_all_workout_data(conn, currUser.get_current_user());
+        // Re-appends everything to db with the updated ArrayLists
+        for (int i = 0; i < chosenArrayList.size(); i++) {
+            // based on the indexNum we choose the appropriate 'append'
+            // structure.(Append/relace type or name)
+            switch (indexNum) {
+                case 1:
+                    db.add_workout_name(conn, chosenArrayList.get(i), currUser.get_current_user());
+                    db.add_workout_type(conn, allWType.get(i), currUser.get_current_user());
+                    db.add_workout_path(conn, allWPath.get(i), currUser.get_current_user());
+                    break;
+                case 2:
+                    db.add_workout_name(conn, allWName.get(i), currUser.get_current_user());
+                    db.add_workout_type(conn, chosenArrayList.get(i), currUser.get_current_user());
+                    db.add_workout_path(conn, allWPath.get(i), currUser.get_current_user());
+                    break;
+                default:
+                    break;
+            }
+
+        }
+    }
+
     // TODO wrote it for edit type as well
-    private void update_data_in_db(String newWorkoutName) throws IOException {
+    private void update_data_in_db_name(String newWorkoutName) throws IOException {
         ArrayList<String> allWName = separate_collect_workout_datas(
                 db.read_all_workout_name(conn, currUser.get_current_user()));
         ArrayList<String> allWType = separate_collect_workout_datas(
@@ -299,18 +386,40 @@ public class InWorkout extends JFrame implements ActionListener, java.awt.event.
         db.remove_all_workout_data(conn, currUser.get_current_user());
         for (int i = 0; i < allWName.size(); i++) {
             db.add_workout_name(conn, allWName.get(i), currUser.get_current_user());
-            db.add_workout_type(conn, allWPath.get(i), currUser.get_current_user());
+            db.add_workout_type(conn, allWType.get(i), currUser.get_current_user());
             db.add_workout_path(conn, allWPath.get(i), currUser.get_current_user());
         }
     }
 
+    private void update_data_in_db_type(String newWorkoutType) throws IOException {
+        ArrayList<String> allWName = separate_collect_workout_datas(
+                db.read_all_workout_name(conn, currUser.get_current_user()));
+        ArrayList<String> allWType = separate_collect_workout_datas(
+                db.read_all_workout_type(conn, currUser.get_current_user()));
+        ArrayList<String> allWPath = separate_collect_workout_datas(
+                db.read_all_workout_path(conn, currUser.get_current_user()));
+
+        for (int i = 0; i < allWType.size(); i++) {
+            if (allWType.get(i).equalsIgnoreCase(currentWorkoutType)) {
+                allWType.remove(i);
+                allWType.add(i, newWorkoutType);
+            }
+        }
+        db.remove_all_workout_data(conn, currUser.get_current_user());
+        for (int i = 0; i < allWName.size(); i++) {
+            db.add_workout_name(conn, allWName.get(i), currUser.get_current_user());
+            db.add_workout_type(conn, allWType.get(i), currUser.get_current_user());
+            db.add_workout_path(conn, allWPath.get(i), currUser.get_current_user());
+        }
+    }
+
+    // currently not used
     @Override
     public void mouseClicked(MouseEvent e) {
         if (e.getClickCount() == 2) {
             if (e.getComponent().getName() == workoutName.getName()) {
             }
         }
-
     }
 
     @Override

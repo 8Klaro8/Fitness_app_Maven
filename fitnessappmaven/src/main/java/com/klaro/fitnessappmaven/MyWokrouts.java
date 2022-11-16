@@ -134,6 +134,7 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
             currWorkoutButton = new JButton(collectedWorkoutNames.get(i));
             currWorkoutButton = setWorkoutButtonIcon(collectedWorkoutPaths.get(i), currWorkoutButton);
             currWorkoutButton.addActionListener(buttonAction);
+            currWorkoutButton.addMouseListener(this);
             panelScroll.add(currWorkoutButton);
         }
     }
@@ -283,15 +284,14 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
         @Override
         public void actionPerformed(ActionEvent e) {
             buttonToDelete = e.getActionCommand(); // set 'buttonToDelete' equal to the clicked button's name
-            System.out.println("Button clikced: " + buttonToDelete);
-            go_to_clicked_workout();
         }
     };
 
     @Override
     public void mouseClicked(java.awt.event.MouseEvent e) {
         if (e.getClickCount() == 2) {
-            
+            System.out.println(e.getClickCount());
+            go_to_clicked_workout();
         }
 
     }

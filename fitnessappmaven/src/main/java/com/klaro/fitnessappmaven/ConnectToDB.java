@@ -185,7 +185,7 @@ public class ConnectToDB {
     }
 
     public void add_user(Connection conn, String username, String hashed_password, String first_name,
-            String last_name, String profPic) {
+            String last_name, String profPic, String height,String weight) {
         /**
          * Creates user to account db
          * 
@@ -200,9 +200,9 @@ public class ConnectToDB {
         Statement statement;
         try {
             String query = String.format(
-                    "insert into my_users (username, password, firstname, lastname, prof_image) values ('%s', '%s', '%s', '%s', '%s');",
+                    "insert into my_users (username, password, firstname, lastname, prof_image, height, weight) values ('%s', '%s', '%s', '%s', '%s', '%s', '%s');",
                     username,
-                    hashed_password, first_name, last_name, profPic);
+                    hashed_password, first_name, last_name, profPic, height, weight);
             statement = conn.createStatement();
             statement.executeUpdate(query);
             System.out.println("Row inserted!");
@@ -519,5 +519,29 @@ public class ConnectToDB {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    public void add_weight(Connection conn, String weight, String current_user) {
+        String query = String.format("UPDATE my_users set weight = '%s WHERE username = '%s';", weight, current_user);
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeUpdate(query);
+            System.out.println("Workout weight added successfuly!");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        
+    }
+
+    public void add_height(Connection conn, String height, String current_user) {
+        String query = String.format("UPDATE my_users set height = '%s WHERE username = '%s';", height, current_user);
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeUpdate(query);
+            System.out.println("Workout height added successfuly!");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        
     }
 }

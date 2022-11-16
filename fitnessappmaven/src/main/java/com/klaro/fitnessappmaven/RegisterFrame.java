@@ -12,14 +12,11 @@ public class RegisterFrame extends JFrame implements ActionListener, LoginFormIn
     HashPassword hashPW;
 
     // labels & buttons
-    JLabel userLabel;
-    JLabel passwordLabel;
-    JLabel passwordLabelRep;
-    JTextField userTextfield;
-    JPasswordField passwordTextfield;
-    JPasswordField passwordTextfieldRep;
-    JButton registerButton;
-    JButton backToLogin;
+    JLabel userLabel, passwordLabel, passwordLabelRep, weightLabel, heightLabel;
+    JPanel mainPanel, registerDataPanel, perosnalInfoPanel, north, south, east, west, showPassPanel, buttonsPanel;
+    JTextField userTextfield, weight, height;
+    JPasswordField passwordTextfield, passwordTextfieldRep;
+    JButton registerButton, backToLogin;
     JCheckBox showPassword;
     final String BASE_PROF_PIC = "fitnessappmaven\\src\\main\\java\\com\\klaro\\fitnessappmaven\\ProfilePics\\basic_prif_pic.png";
     public final String LOGO_PIC_PATH = "fitnessappmaven\\src\\main\\java\\com\\klaro\\fitnessappmaven\\Logo\\lgo.png";
@@ -27,18 +24,57 @@ public class RegisterFrame extends JFrame implements ActionListener, LoginFormIn
 
     RegisterFrame() {
         hashPW = new HashPassword();
-        container = getContentPane();
-        container.setLayout(new BoxLayout(container, BoxLayout.LINE_AXIS));
+        RegisterFrame();
+        setupFrame();
+        // set icon
+        setIcon();
+    }
 
-        // this.frame settngs
-        this.setTitle("My IT app");
-        this.setVisible(true);
-        this.setBounds(10, 10, 370, 500);
-        this.setDefaultCloseOperation(this.EXIT_ON_CLOSE);
-        this.setResizable(false);
-        this.setLocationRelativeTo(null);
+    private void addComponents() {
+        registerDataPanel.add(userTextfield);
+        registerDataPanel.add(passwordLabel);
+        registerDataPanel.add(passwordTextfield);
+        registerDataPanel.add(passwordLabelRep);
+        registerDataPanel.add(passwordTextfieldRep);
+        // add show pass panel
+        showPassPanel.add(showPassword);
+        this.add(showPassPanel);
+        // add to personal panel
+        perosnalInfoPanel.add(heightLabel);
+        perosnalInfoPanel.add(height);
+        perosnalInfoPanel.add(weightLabel);
+        perosnalInfoPanel.add(weight);
+        // ad to buttons panel
+        buttonsPanel.add(registerButton);
+        buttonsPanel.add(backToLogin);
+        // add to 'mainPanel'
+        mainPanel.add(registerDataPanel);
+        mainPanel.add(showPassword);
+        mainPanel.add(perosnalInfoPanel);
+        mainPanel.add(buttonsPanel);
 
-        // labels & buttons
+        this.add(BorderLayout.EAST, east);
+        this.add(BorderLayout.WEST, west);
+        this.add(BorderLayout.SOUTH, south);
+        this.add(BorderLayout.NORTH, north);
+        this.add(BorderLayout.CENTER, mainPanel);
+    }
+
+    private void setLayouts() {
+        this.setLayout(new BorderLayout());
+        mainPanel.setLayout(new GridLayout(4, 1));
+        registerDataPanel.setLayout(new GridLayout(3, 2, 10, 10));
+        perosnalInfoPanel.setLayout(new GridLayout(3, 2, 10, 10));
+        showPassPanel.setLayout(new GridLayout(1, 3, 10, 10));
+    }
+
+    private void setIcon() {
+        ImageIcon image = new ImageIcon(LOGO_PIC_PATH);
+        this.setIconImage(image.getImage());
+        this.getContentPane().setBackground(Color.WHITE);
+    }
+
+    private void initComponents() {
         userLabel = new JLabel("Username");
         passwordLabel = new JLabel("Password");
         passwordLabelRep = new JLabel("Repeat Password");
@@ -48,60 +84,43 @@ public class RegisterFrame extends JFrame implements ActionListener, LoginFormIn
         registerButton = new JButton("Register");
         backToLogin = new JButton("Back to Login");
         showPassword = new JCheckBox("Show Password");
+        weight = new JTextField();
+        height = new JTextField();
+        heightLabel = new JLabel("Height");
+        weightLabel = new JLabel("Weight");
+        mainPanel = new JPanel();
+        registerDataPanel = new JPanel();
+        perosnalInfoPanel = new JPanel();
+        north = new JPanel();
+        south = new JPanel();
+        east = new JPanel();
+        west = new JPanel();
+        // set panels size
+        east.setPreferredSize(new Dimension(70, 0));
+        west.setPreferredSize(new Dimension(70, 0));
+        showPassPanel = new JPanel();
+        buttonsPanel = new JPanel();
 
-        // set icon
-        ImageIcon image = new ImageIcon(LOGO_PIC_PATH);
-        this.setIconImage(image.getImage());
-        this.getContentPane().setBackground(Color.WHITE);
-        RegisterFrame();
+    }
+
+    private void setupFrame() {
+        this.setTitle("My IT app");
+        this.setVisible(true);
+        this.setBounds(10, 10, 370, 500);
+        this.setDefaultCloseOperation(this.EXIT_ON_CLOSE);
+        this.setResizable(false);
+        this.setLocationRelativeTo(null);
     }
 
     public void RegisterFrame() {
-        setLayoutManager();
-        this.setLocationAndSize();
-        this.addComponentsToContainer();
+        // init buttons
+        initComponents();
+        // set layout
+        setLayouts();
+        // add to register panel
+        registerDataPanel.add(userLabel);
+        addComponents();
         this.addActionEvent();
-    }
-
-    // sets the layout to null - NOT USED CURRENLTY
-    public void setLayoutManager() {
-        this.container.setLayout(null);
-    }
-
-    // Sets the components size and location
-    public void setLocationAndSize() {
-        userLabel.setSize(new Dimension(100, 50));
-        userLabel.setLocation(145, 30);
-        passwordLabel.setSize(new Dimension(100, 50));
-        passwordLabel.setLocation(145, 90);
-        passwordLabelRep.setSize(new Dimension(200, 50));
-        passwordLabelRep.setLocation(122, 150);
-        userTextfield.setSize(new Dimension(150, 30));
-        userTextfield.setLocation(100, 70);
-        passwordTextfield.setSize(new Dimension(150, 30));
-        passwordTextfield.setLocation(100, 130);
-        passwordTextfieldRep.setSize(new Dimension(150, 30));
-        passwordTextfieldRep.setLocation(100, 190);
-        showPassword.setSize(new Dimension(150, 30));
-        showPassword.setLocation(95, 230);
-        registerButton.setSize(new Dimension(100, 30));
-        registerButton.setLocation(125, 280);
-        backToLogin.setSize(new Dimension(150, 30));
-        backToLogin.setLocation(100, 320);
-
-    }
-
-    // Adds all components to 'container'
-    public void addComponentsToContainer() {
-        this.container.add(userLabel);
-        this.container.add(passwordLabel);
-        this.container.add(passwordLabelRep);
-        this.container.add(userTextfield);
-        this.container.add(passwordTextfield);
-        this.container.add(passwordTextfieldRep);
-        this.container.add(registerButton);
-        this.container.add(backToLogin);
-        this.container.add(showPassword);
     }
 
     // add action event
@@ -128,6 +147,10 @@ public class RegisterFrame extends JFrame implements ActionListener, LoginFormIn
                     JOptionPane.showMessageDialog(this, "Username and Password fields can't be empty.");
                     return;
                 }
+                if (height.getText().isEmpty() || weight.getText().isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Please give a height and weight.");
+                    return;
+                }
                 // Hash password
                 try {
                     // Basic profile image
@@ -138,8 +161,8 @@ public class RegisterFrame extends JFrame implements ActionListener, LoginFormIn
                     // control if username exists in DB
                     boolean usernameExists = db.username_exists(conn, "my_users", username);
                     if (!(usernameExists)) {
-                        db.add_user(conn, username, hashedPW, "null", "null", BASE_PROF_PIC);
-                        
+                        db.add_user(conn, username, hashedPW, "null", "null", BASE_PROF_PIC, height.getText(), weight.getText());
+
                         // Login freshly registered user
                         currUserMethod.set_current_user(username);
                         // Add start value to new user
@@ -147,11 +170,9 @@ public class RegisterFrame extends JFrame implements ActionListener, LoginFormIn
                         go_back_to_homesite();
                         // TODO - show message only if user added indeed.
                         JOptionPane.showMessageDialog(this, "User: " + username + " has been registered!");
-                    }
-                    else{
+                    } else {
                         JOptionPane.showMessageDialog(this, "The username: " + username + " already exists.");
                     }
-
 
                 } catch (Exception err) {
                     System.out.println(err.getMessage());
@@ -175,7 +196,6 @@ public class RegisterFrame extends JFrame implements ActionListener, LoginFormIn
             passwordTextfieldRep.setEchoChar('*');
         }
     }
-
     // Page changing
     public void go_to_login_page() {
         this.dispose();
@@ -186,5 +206,4 @@ public class RegisterFrame extends JFrame implements ActionListener, LoginFormIn
         this.dispose();
         new HomeSite();
     }
-
 }

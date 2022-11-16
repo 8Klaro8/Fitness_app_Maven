@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import org.json.simple.parser.ParseException;
+
 public final class Main {
     private Main() {
     }
@@ -18,8 +20,9 @@ public final class Main {
      * Says hello to the world.
      * 
      * @param args The arguments of the program.
+     * @throws ParseException
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ParseException {
 
         // // // // //
         // ---------------------GSON------------------------------------------
@@ -55,11 +58,14 @@ public final class Main {
         // GetCurrentUser getUser = new GetCurrentUser();
         // String current_user = getUser.get_current_user();
 
+        // new ReadAPI();
+        // new RegisterFrame();
+        // new TestRegisterFrame();
         // new AddWorkout();
         // new MyWokrouts();
         // new ChangeProfile();
-        // new MyFrame();
-        new HomeSite();
+        new MyFrame();
+        // new HomeSite();
         // ConnectToDB db = new ConnectToDB();
         // Connection conn = db.connect_to_db("accounts", "postgres", System.getenv("PASSWORD"));
         // db.add_column(conn, "workout_name", "text");

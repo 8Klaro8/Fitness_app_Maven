@@ -19,8 +19,8 @@ import com.google.gson.*;
  * AddWorkout
  */
 public class AddWorkout extends JFrame implements ItemListener, ActionListener {
-    JLabel workoutTitleLabel;
-    JTextField workoutTitleInput;
+    JLabel workoutTitleLabel, timeWorkedOutLabel;
+    JTextField workoutTitleInput, timeWorkedOutInput;
     JPanel centerPanel, north, west, east, south, workoutScrollPanel, topPanel, midPanel, emptyPanel, bottomPanel;
     JButton button, button2, button3, addWorkout, backButton;
     WorkoutList workoutList;
@@ -32,7 +32,6 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
     Connection conn = db.connect_to_db("accounts", "postgres", System.getenv("PASSWORD"));
     CurrentUser currentUser = new CurrentUser();
     Gson myGson = new Gson();
-
     // workout datas to save
     String workoutType, workoutPath, workoutName;
 
@@ -40,9 +39,11 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
         workoutList = new WorkoutList(); // workout icons
         // init. label(s)
         workoutTitleLabel = new JLabel("Workout's title", SwingConstants.CENTER);
+        timeWorkedOutLabel = new JLabel("Workout duration", SwingConstants.CENTER);
         // init. entry(es)
         workoutTitleInput = new JTextField();
         workoutTitleInput.setPreferredSize(new Dimension(150, 30));
+        timeWorkedOutInput = new JTextField();
         // init. buttons
         backButton = new JButton("<Back");
         // init. panels
@@ -56,7 +57,7 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
         north.setPreferredSize(new Dimension(50, 30));
         west.setPreferredSize(new Dimension(100, 0));
         east.setPreferredSize(new Dimension(100, 0));
-        south.setPreferredSize(new Dimension(50, 0));
+        south.setPreferredSize(new Dimension(50, 50));
 
         // functions
         setup(); // call setup - sets up the basics for this.JFrame
@@ -120,6 +121,12 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
         topPanel.add(workoutTitleInput);
         topPanel.add(jCombo);
         midPanel.add(new JScrollPane(workoutScrollPanel));
+        // set bottom panel layout
+        bottomPanel.setLayout(new GridLayout(3,1,10,10));
+        // add to bottom panel
+        bottomPanel.add(timeWorkedOutLabel);
+        bottomPanel.add(timeWorkedOutInput);
+
         bottomPanel.add(addWorkout);
         // add elements to 'centerPanel'
         centerPanel.add(topPanel);
@@ -187,6 +194,11 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
         if (e.getSource() == addWorkout) {
             // TODO check if workout name contians forbidden characters, like: ''
             workoutName = workoutTitleInput.getText(); // get workout's name/title
+            // get workout duration
+            if (timeWorkedOutInput.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Type workout duration!");
+                return;
+            }
             // check if workout name already exists
             if (workout_name_exists()) {
                 JOptionPane.showMessageDialog(this, "This workout name already exists!");
@@ -208,6 +220,7 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
                     db.add_workout_name(conn, workoutName, currentUser.get_current_user());
                     db.add_workout_type(conn, workoutType, currentUser.get_current_user());
                     db.add_workout_path(conn, workoutPath, currentUser.get_current_user());
+                    db.add_workout_duration(conn, timeWorkedOutInput.getText(), currentUser.get_current_user());
                     JOptionPane.showMessageDialog(this, "Workout added Successfuly!");
                     go_back_to_my_workouts();
                 } catch (Exception err) {

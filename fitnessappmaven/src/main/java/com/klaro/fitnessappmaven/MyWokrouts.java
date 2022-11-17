@@ -38,7 +38,7 @@ import java.util.Map;
 // TODO - make horizotal scrolling vanish
 
 public class MyWokrouts extends JFrame implements ActionListener, MouseInputListener {
-    String buttonToDelete = "";// temp solution for preserving selected workout - for deletion
+    String selectedButton = "";// temp solution for preserving selected workout - for deletion
     // init. button(s) and panel(s)
     JButton button, backButton, test, workoutButton, addWorkout, removeWorkout;
     JPanel panelTop, panelBottom, panelRight, panelCenter, panelScroll;
@@ -223,7 +223,8 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
 
     public void go_to_clicked_workout() {
         this.dispose();
-        new InWorkout(buttonToDelete);
+        // new InWorkout(selectedButton);
+        new TestInWorkout(selectedButton);
     }
 
     @Override
@@ -252,18 +253,23 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
         ArrayList<String> collectedWorkoutNames = separate_collect_workout_datas(db.read_all_workout_name(conn, currUser.get_current_user()));
         ArrayList<String> collectedWorkoutTypes = separate_collect_workout_datas(db.read_all_workout_type(conn, currUser.get_current_user()));
         ArrayList<String> collectedWorkoutPaths = separate_collect_workout_datas(db.read_all_workout_path(conn, currUser.get_current_user()));
+        ArrayList<String> collectedWorkoutdurations = separate_collect_workout_datas(db.read_all_workout_duration(conn, currUser.get_current_user()));
+
         for (int i = 0; i < collectedWorkoutNames.size(); i++) {
-            if (collectedWorkoutNames.get(i).equals(buttonToDelete)) {
+            if (collectedWorkoutNames.get(i).equals(selectedButton)) {
                 System.out.println("Index found!");
                 // get workout type and path from db by index
                 String typeToDelete = collectedWorkoutTypes.get(i);
                 String pathToDelete = collectedWorkoutPaths.get(i);
+                String durationToDelete = collectedWorkoutdurations.get(i);
                 // delete items from ArrayList
                 for (int j = 0; j < collectedWorkoutNames.size(); j++) {
-                    if (collectedWorkoutNames.get(i).equals(buttonToDelete)) {
+                    if (collectedWorkoutNames.get(i).equals(selectedButton)) {
                         collectedWorkoutNames.remove(i);
                         collectedWorkoutTypes.remove(i);
                         collectedWorkoutPaths.remove(i);
+                        collectedWorkoutdurations.remove(i);
+
                     }
                     break;
                 }
@@ -274,6 +280,7 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
                     db.add_workout_name(conn, collectedWorkoutNames.get(j), currUser.get_current_user());
                     db.add_workout_type(conn, collectedWorkoutTypes.get(j), currUser.get_current_user());
                     db.add_workout_path(conn, collectedWorkoutPaths.get(j), currUser.get_current_user());
+                    db.add_workout_duration(conn, collectedWorkoutdurations.get(j), currUser.get_current_user());
                 }
 
             }
@@ -283,7 +290,7 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
     Action buttonAction = new AbstractAction() {
         @Override
         public void actionPerformed(ActionEvent e) {
-            buttonToDelete = e.getActionCommand(); // set 'buttonToDelete' equal to the clicked button's name
+            selectedButton = e.getActionCommand(); // set 'buttonToDelete' equal to the clicked button's name
         }
     };
 

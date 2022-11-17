@@ -32,12 +32,15 @@ import javax.json.JsonReader;
 import javax.json.JsonStructure;
 
 public class ReadAPI {
-
     public ReadAPI() throws IOException, ParseException {
+    }
 
+    public JSONArray getCalorie(String min, String weight) throws ParseException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(
-                        "https://fitness-calculator.p.rapidapi.com/burnedcalorie?activityid=bi_2&activitymin=50&weight=77"))
+                        String.format(
+                                "https://fitness-calculator.p.rapidapi.com/burnedcalorie?activityid=bi_2&activitymin=%s&weight=%s",
+                                min, weight)))
                 .header("X-RapidAPI-Key", "b4b40d284amshacf7b676b928e88p1a5c77jsned0db45910bf")
                 .header("X-RapidAPI-Host", "fitness-calculator.p.rapidapi.com")
                 .method("GET", HttpRequest.BodyPublishers.noBody())
@@ -46,18 +49,17 @@ public class ReadAPI {
         HttpResponse<String> response;
         try {
             response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-            
+
             JSONParser parser = new JSONParser();
-            JSONObject json = (JSONObject)parser.parse(String.valueOf(response.body()));
+            JSONObject json = (JSONObject) parser.parse(String.valueOf(response.body()));
             JSONArray jArray = new JSONArray();
-            
+
             for (Object x : json.entrySet()) {
                 jArray.add(x);
             }
+            System.out.println(jArray);
+            return jArray;
 
-
-            System.out.println(jArray.get(1));
-            
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -65,5 +67,6 @@ public class ReadAPI {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+        return null;
     }
 }

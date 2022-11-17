@@ -5,12 +5,11 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
 import java.sql.Connection;
-
+// TODO DONT let register with username that already exists
 public class RegisterFrame extends JFrame implements ActionListener, LoginFormInterFace {
     // initialize container
     Container container;
     HashPassword hashPW;
-
     // labels & buttons
     JLabel userLabel, passwordLabel, passwordLabelRep, weightLabel, heightLabel;
     JPanel mainPanel, registerDataPanel, perosnalInfoPanel, north, south, east, west, showPassPanel, buttonsPanel;
@@ -161,7 +160,7 @@ public class RegisterFrame extends JFrame implements ActionListener, LoginFormIn
                     // control if username exists in DB
                     boolean usernameExists = db.username_exists(conn, "my_users", username);
                     if (!(usernameExists)) {
-                        db.add_user(conn, username, hashedPW, "null", "null", BASE_PROF_PIC, height.getText(), weight.getText());
+                        db.add_user(conn, username, hashedPW, ", ", ", ", BASE_PROF_PIC, height.getText(), weight.getText(), ", ");
 
                         // Login freshly registered user
                         currUserMethod.set_current_user(username);

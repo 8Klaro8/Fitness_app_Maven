@@ -185,7 +185,7 @@ public class ConnectToDB {
     }
 
     public void add_user(Connection conn, String username, String hashed_password, String first_name,
-            String last_name, String profPic, String height,String weight) {
+            String last_name, String profPic, String height, String weight, String timeWorkedOut) {
         /**
          * Creates user to account db
          * 
@@ -200,9 +200,9 @@ public class ConnectToDB {
         Statement statement;
         try {
             String query = String.format(
-                    "insert into my_users (username, password, firstname, lastname, prof_image, height, weight) values ('%s', '%s', '%s', '%s', '%s', '%s', '%s');",
+                    "insert into my_users (username, password, firstname, lastname, prof_image, height, weight, workout_duration) values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');",
                     username,
-                    hashed_password, first_name, last_name, profPic, height, weight);
+                    hashed_password, first_name, last_name, profPic, height, weight, timeWorkedOut);
             statement = conn.createStatement();
             statement.executeUpdate(query);
             System.out.println("Row inserted!");
@@ -454,6 +454,22 @@ public class ConnectToDB {
         return null;
     }
 
+    public String read_all_workout_duration(Connection conn, String current_user) {
+        String workoutPaths = new String();
+        String query = String.format("SELECT workout_duration FROM my_users WHERE username = '%s'", current_user);
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            while (rs.next()) {
+                workoutPaths += rs.getString("workout_duration");
+            }
+            return workoutPaths;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
     public void add_workout_name(Connection conn, String workoutName, String current_user) {
         String query = String.format("UPDATE my_users set workout_name = workout_name || '%s, ' WHERE username = '%s';", workoutName, current_user);
         try {
@@ -511,7 +527,7 @@ public class ConnectToDB {
     }
 
     public void remove_all_workout_data(Connection conn, String current_user) {
-        String query = String.format("UPDATE my_users SET workout_name = ', ', workout_type = ', ', workout_path = ', ' WHERE username='%s';", current_user);
+        String query = String.format("UPDATE my_users SET workout_name = ', ', workout_type = ', ', workout_path = ', ', workout_duration = ', ' WHERE username='%s';", current_user);
         try {
             Statement statmeent = conn.createStatement();
             statmeent.executeQuery(query);
@@ -544,4 +560,32 @@ public class ConnectToDB {
         }
         
     }
+
+    public void add_workout_duration(Connection conn, String timeWorkedOut, String current_user) {
+        String query = String.format("UPDATE my_users set workout_duration = workout_duration || '%s, ' WHERE username = '%s';", timeWorkedOut, current_user);
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeUpdate(query);
+            System.out.println("Workout height added successfuly!");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        
+    }
+
+    public String read_users_weight(Connection conn, String current_user) {
+        String query = String.format("SELECT weight FROM my_users WHERE username = '%s'", current_user);
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs =  statement.executeQuery(query);
+            while (rs.next()) {
+                return rs.getString("weight");
+                
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
 }

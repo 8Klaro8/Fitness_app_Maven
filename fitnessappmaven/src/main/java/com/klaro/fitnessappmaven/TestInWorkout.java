@@ -14,50 +14,91 @@ import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 import javax.swing.event.MouseInputListener;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.io.IOError;
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class InWorkout extends JFrame implements ActionListener, java.awt.event.ActionListener, MouseInputListener {
-    JPanel panelTop, panelRight, panelBottom, panelLeft, panelCenter, centerPanelSeparator, centerTopPanel, centerBotPanel;
+public class TestInWorkout extends JFrame implements ActionListener, java.awt.event.ActionListener, MouseInputListener {
+    JPanel panelTop, panelRight, panelBottom, panelLeft, panelCenter, centerPanelSeparator, centerTopPanel,
+            centerBotPanel, caloriePanel;
     JButton backButton, editWorkoutName, editWorkoutType, done, done2;
-    JLabel workoutName, workoutType;
+    JLabel workoutName, workoutType, burnedCaloriesLabel, burnedCaloriesLabelNumber;
     JTextField workoutNameTextField, workoutTypeTextField;
-    String path, name, type, currentWorkoutName, currentWorkoutType;
-
+    String path, name, type, currentWorkoutName, currentWorkoutType, clickedButton, calorie;
     ArrayList<String> chosenArrayList;
-
     ConnectToDB db = new ConnectToDB();
     Connection conn = db.connect_to_db("accounts", "postgres", System.getenv("PASSWORD"));
     CurrentUser currUser = new CurrentUser();
 
-    public InWorkout(String clickedButton) {
+    public TestInWorkout(String clickedButton) {
+        this.clickedButton = clickedButton;
         // init button and set font
-        backButton = new JButton();
-        editWorkoutName = new JButton("Edit Workout title");
-        editWorkoutName
-                .setFont(new Font(editWorkoutName.getFont().getName(), editWorkoutName.getFont().getStyle(), 20));
-        editWorkoutType = new JButton("Edit Workout type");
-        editWorkoutType
-                .setFont(new Font(editWorkoutType.getFont().getName(), editWorkoutType.getFont().getStyle(), 20));
-        done = new JButton("Done!");
-        done.setFont(new Font(done.getFont().getName(), done.getFont().getStyle(), 20));
-        done2 = new JButton("Done!");
-        done2.setFont(new Font(done2.getFont().getName(), done2.getFont().getStyle(), 20));
+        initButtons();
+        // init labels
+        burnedCaloriesLabel = new JLabel("Burned Calories", SwingConstants.CENTER);
+        burnedCaloriesLabelNumber = new JLabel();
 
+        // set fonts
+        setFonts();
         // add actionlistener
         editWorkoutName.addActionListener(this);
         editWorkoutType.addActionListener(this);
         done.addActionListener(this);
         done2.addActionListener(this);
-
+        // back button
         backButton.setText("<Back");
         backButton.addActionListener(this);
         // init panels
+        initPanels();
+        setCenterPanel(clickedButton);
+        setTopPanel(panelTop);
+        // set preffered size
+        panelLeft.setPreferredSize(new Dimension(70, 0));
+        panelRight.setPreferredSize(new Dimension(70, 0));
+        // set layout
+        centerPanelSeparator.setLayout(new GridLayout(2, 1, 10, 10));
+        centerTopPanel.setLayout(new GridLayout(4, 1, 10, 10));
+        centerBotPanel.setLayout(new GridLayout(3, 1, 10, 10));
+
+        // Set center panel
+        setup();
+    }
+
+    private void setFonts() {
+        editWorkoutName
+                .setFont(new Font(editWorkoutName.getFont().getName(), editWorkoutName.getFont().getStyle(), 20));
+        editWorkoutType
+                .setFont(new Font(editWorkoutType.getFont().getName(), editWorkoutType.getFont().getStyle(), 20));
+        done.setFont(new Font(done.getFont().getName(), done.getFont().getStyle(), 20));
+        done2.setFont(new Font(done2.getFont().getName(), done2.getFont().getStyle(), 20));
+    }
+
+    private void initButtons() {
+        backButton = new JButton();
+        done = new JButton("Done!");
+        done2 = new JButton("Done!");
+        editWorkoutName = new JButton("Edit Workout title");
+        editWorkoutType = new JButton("Edit Workout type");
+    }
+
+    private void initPanels() {
         centerPanelSeparator = new JPanel();
         panelTop = new JPanel();
         panelRight = new JPanel();
@@ -66,18 +107,7 @@ public class InWorkout extends JFrame implements ActionListener, java.awt.event.
         panelCenter = new JPanel();
         centerTopPanel = new JPanel();
         centerBotPanel = new JPanel();
-        setCenterPanel(clickedButton);
-        setTopPanel(panelTop);
-        // set preffered size
-        panelLeft.setPreferredSize(new Dimension(70, 0));
-        panelRight.setPreferredSize(new Dimension(70, 0));
-        // set layout
-        centerPanelSeparator.setLayout(new GridLayout(2,1,10,10));
-        centerTopPanel.setLayout(new GridLayout(3,1,10,10));
-        centerBotPanel.setLayout(new GridLayout(3,1,10,10));
-
-        // Set center panel
-        setup();
+        caloriePanel = new JPanel();
     }
 
     public void setup() {
@@ -110,7 +140,7 @@ public class InWorkout extends JFrame implements ActionListener, java.awt.event.
     }
 
     public void setCenterPanel(String clickedButton) {
-        panelCenter.setLayout(new GridLayout(5, 3, 10, 10)); // set center panel's layout
+        panelCenter.setLayout(new GridLayout(2, 1, 10, 10)); // set center panel's layout
         // Get current workout by workout's name
         try {
             ArrayList<String> allWName = separate_collect_workout_datas(
@@ -134,6 +164,7 @@ public class InWorkout extends JFrame implements ActionListener, java.awt.event.
                     workoutName.setName("workoutLabel");
                     // add mouse listener
                     workoutName.addMouseListener(this);
+
                     // when clicked, make it editable
                     add_comp_to_centerPanel(path);
                 }
@@ -144,20 +175,79 @@ public class InWorkout extends JFrame implements ActionListener, java.awt.event.
 
     }
 
-    private void add_comp_to_centerPanel(String path) {
+    private void add_comp_to_centerPanel(String path) throws IOException {
+        // add comp. to 'centerTopPanel'
         centerTopPanel.add(workoutName);
         centerTopPanel.add(editWorkoutName);
         centerTopPanel.add(workoutType);
+        centerTopPanel.add(editWorkoutType);
+        // add button
+        centerBotPanel.add(setWorkoutButtonIcon(path, new JButton()));
+        // read user's weight
+        String usersWeight = db.read_users_weight(conn, currUser.get_current_user());
+        String currentDuration = null;
+        // get duration of workout
+        String stringAllWorkoutName = db.read_all_workout_name(conn, currUser.get_current_user());
+        ArrayList<String> arrayListAllWorkoutName = separate_collect_workout_datas(stringAllWorkoutName);
+        String stringAllWorkoutDuration = db.read_all_workout_duration(conn, currUser.get_current_user());
+        ArrayList<String> arrayListAllWorkoutDuration = separate_collect_workout_datas(stringAllWorkoutDuration);
 
-        // centerBotPanel.add(editWorkoutType);
+        for (int i = 0; i < arrayListAllWorkoutName.size(); i++) {
+            if (arrayListAllWorkoutName.get(i).equals(clickedButton)) {
+                currentDuration = arrayListAllWorkoutDuration.get(i);
+            }
+        }
+        // read API
+        try {
+            HttpRequest response = getResponse(usersWeight, currentDuration);
+            calorie = getCalorie(response);
+            burnedCaloriesLabelNumber.setText(calorie);
+            burnedCaloriesLabelNumber.setHorizontalAlignment(SwingConstants.CENTER);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        // add calorie components to calorie panel
+        caloriePanel.setLayout(new GridLayout(1,2,10,10));
+        caloriePanel.add(burnedCaloriesLabel);
+        caloriePanel.add(burnedCaloriesLabelNumber);
+        // add calorie panel to bot panel
+        centerBotPanel.add(caloriePanel);
+        // add sub panels to 'panelCenter'
+        panelCenter.add(centerTopPanel);
+        panelCenter.add(centerBotPanel);
+    }
 
-        centerPanelSeparator.add(centerTopPanel);
-        centerPanelSeparator.add(centerBotPanel);
+    private HttpRequest getResponse(String usersWeight, String currentDuration) {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(
+                        String.format(
+                                "https://fitness-calculator.p.rapidapi.com/burnedcalorie?activityid=bi_2&activitymin=%s&weight=%s",
+                                currentDuration, usersWeight)))
+                .header("X-RapidAPI-Key", "b4b40d284amshacf7b676b928e88p1a5c77jsned0db45910bf")
+                .header("X-RapidAPI-Host", "fitness-calculator.p.rapidapi.com")
+                .method("GET", HttpRequest.BodyPublishers.noBody())
+                .build();
+        return request;
+    }
 
+    private String getCalorie(HttpRequest request) throws ParseException {
+        HttpResponse<String> response;
+        try {
+            response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+            JSONParser parser = new JSONParser();
+            JSONObject json = (JSONObject) parser.parse(String.valueOf(response.body()));
+            Object calorieJson = json.values().toArray()[1];
+            JSONObject calorie = (JSONObject)parser.parse(String.valueOf(calorieJson));
+            return String.valueOf(calorie.values().toArray()[1]);
 
-        panelCenter.add(centerPanelSeparator);
-
-        panelCenter.add(setWorkoutButtonIcon(path, new JButton()));
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public JButton setWorkoutButtonIcon(String picPath, JButton button) {
@@ -375,51 +465,6 @@ public class InWorkout extends JFrame implements ActionListener, java.awt.event.
                     break;
             }
 
-        }
-    }
-
-    // TODO wrote it for edit type as well
-    private void update_data_in_db_name(String newWorkoutName) throws IOException {
-        ArrayList<String> allWName = separate_collect_workout_datas(
-                db.read_all_workout_name(conn, currUser.get_current_user()));
-        ArrayList<String> allWType = separate_collect_workout_datas(
-                db.read_all_workout_type(conn, currUser.get_current_user()));
-        ArrayList<String> allWPath = separate_collect_workout_datas(
-                db.read_all_workout_path(conn, currUser.get_current_user()));
-
-        for (int i = 0; i < allWName.size(); i++) {
-            if (allWName.get(i).equalsIgnoreCase(currentWorkoutName)) {
-                allWName.remove(i);
-                allWName.add(i, newWorkoutName);
-            }
-        }
-        db.remove_all_workout_data(conn, currUser.get_current_user());
-        for (int i = 0; i < allWName.size(); i++) {
-            db.add_workout_name(conn, allWName.get(i), currUser.get_current_user());
-            db.add_workout_type(conn, allWType.get(i), currUser.get_current_user());
-            db.add_workout_path(conn, allWPath.get(i), currUser.get_current_user());
-        }
-    }
-
-    private void update_data_in_db_type(String newWorkoutType) throws IOException {
-        ArrayList<String> allWName = separate_collect_workout_datas(
-                db.read_all_workout_name(conn, currUser.get_current_user()));
-        ArrayList<String> allWType = separate_collect_workout_datas(
-                db.read_all_workout_type(conn, currUser.get_current_user()));
-        ArrayList<String> allWPath = separate_collect_workout_datas(
-                db.read_all_workout_path(conn, currUser.get_current_user()));
-
-        for (int i = 0; i < allWType.size(); i++) {
-            if (allWType.get(i).equalsIgnoreCase(currentWorkoutType)) {
-                allWType.remove(i);
-                allWType.add(i, newWorkoutType);
-            }
-        }
-        db.remove_all_workout_data(conn, currUser.get_current_user());
-        for (int i = 0; i < allWName.size(); i++) {
-            db.add_workout_name(conn, allWName.get(i), currUser.get_current_user());
-            db.add_workout_type(conn, allWType.get(i), currUser.get_current_user());
-            db.add_workout_path(conn, allWPath.get(i), currUser.get_current_user());
         }
     }
 

@@ -172,24 +172,18 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
-
     }
 
     private void add_comp_to_centerPanel(String path) throws IOException {
-        // add comp. to 'centerTopPanel'
-        centerTopPanel.add(workoutName);
-        centerTopPanel.add(editWorkoutName);
-        centerTopPanel.add(workoutType);
-        centerTopPanel.add(editWorkoutType);
+
         // add button
-        centerBotPanel.add(setWorkoutButtonIcon(path, new JButton()));
         // read user's weight
         String usersWeight = db.read_users_weight(conn, currUser.get_current_user());
         String currentDuration = null;
         // get duration of workout
         String stringAllWorkoutName = db.read_all_workout_name(conn, currUser.get_current_user());
-        ArrayList<String> arrayListAllWorkoutName = separate_collect_workout_datas(stringAllWorkoutName);
         String stringAllWorkoutDuration = db.read_all_workout_duration(conn, currUser.get_current_user());
+        ArrayList<String> arrayListAllWorkoutName = separate_collect_workout_datas(stringAllWorkoutName);
         ArrayList<String> arrayListAllWorkoutDuration = separate_collect_workout_datas(stringAllWorkoutDuration);
 
         for (int i = 0; i < arrayListAllWorkoutName.size(); i++) {
@@ -206,15 +200,37 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
         } catch (ParseException e) {
             e.printStackTrace();
         }
+        // add comp. to 'centerTopPanel'
+        addCompToCenterTopPanel();
         // add calorie components to calorie panel
-        caloriePanel.setLayout(new GridLayout(1,2,10,10));
-        caloriePanel.add(burnedCaloriesLabel);
-        caloriePanel.add(burnedCaloriesLabelNumber);
-        // add calorie panel to bot panel
-        centerBotPanel.add(caloriePanel);
+        addToCaloriePanel();
+        // add comp. to bot panel
+        addToCenterBotPanel(path);
         // add sub panels to 'panelCenter'
+        addToPanelCenter();
+    }
+
+    private void addToPanelCenter() {
         panelCenter.add(centerTopPanel);
         panelCenter.add(centerBotPanel);
+    }
+
+    private void addToCenterBotPanel(String path) {
+        centerBotPanel.add(setWorkoutButtonIcon(path, new JButton()));
+        centerBotPanel.add(caloriePanel);
+    }
+
+    private void addToCaloriePanel() {
+        caloriePanel.setLayout(new GridLayout(1, 2, 10, 10));
+        caloriePanel.add(burnedCaloriesLabel);
+        caloriePanel.add(burnedCaloriesLabelNumber);
+    }
+
+    private void addCompToCenterTopPanel() {
+        centerTopPanel.add(workoutName);
+        centerTopPanel.add(editWorkoutName);
+        centerTopPanel.add(workoutType);
+        centerTopPanel.add(editWorkoutType);
     }
 
     private HttpRequest getResponse(String usersWeight, String currentDuration) {
@@ -235,10 +251,11 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
         try {
             response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
             JSONParser parser = new JSONParser();
+
             JSONObject json = (JSONObject) parser.parse(String.valueOf(response.body()));
             Object calorieJson = json.values().toArray()[1];
-            JSONObject calorie = (JSONObject)parser.parse(String.valueOf(calorieJson));
-            return String.valueOf(calorie.values().toArray()[1]);
+            JSONObject calorie = (JSONObject) parser.parse(String.valueOf(calorieJson));
+            return String.valueOf(calorie.get("burnedCalorie"));
 
         } catch (IOException e) {
             // TODO Auto-generated catch block
@@ -252,7 +269,7 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
 
     public JButton setWorkoutButtonIcon(String picPath, JButton button) {
         ImageIcon imageIcon = new ImageIcon(picPath);
-        Image resizedImage = imageIcon.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+        Image resizedImage = imageIcon.getImage().getScaledInstance(50, 50, Image.SCALE_SMOOTH);
         imageIcon = new ImageIcon(resizedImage, imageIcon.getDescription());
         button.setIcon(imageIcon);
         return button;
@@ -313,19 +330,23 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
         } else if (e.getSource() == editWorkoutName) {
             currentWorkoutName = workoutName.getText(); // get workout name
             workoutNameTextField = new JTextField(currentWorkoutName);
-
             // Remove comps.
             panelCenter.removeAll();
+            centerBotPanel.removeAll();
+            centerTopPanel.removeAll();
 
-            // append all components
-            panelCenter.add(setWorkoutButtonIcon(path, new JButton()));
-            panelCenter.add(workoutNameTextField);
-            panelCenter.add(done);
-            panelCenter.add(workoutType);
-            panelCenter.add(editWorkoutType);
-
-            panelCenter.revalidate();
-            panelCenter.repaint();
+            // append top panel components
+            centerTopPanel.add(workoutNameTextField);
+            centerTopPanel.add(done);
+            centerTopPanel.add(workoutType);
+            centerTopPanel.add(editWorkoutType);
+            // append bot panel components
+            centerBotPanel.add(setWorkoutButtonIcon(path, new JButton()));
+            centerBotPanel.add(caloriePanel);
+            // add to 'panelCenter'
+            panelCenter.add(centerTopPanel);
+            panelCenter.add(centerBotPanel);
+            refreshScreen();
         }
 
         else if (e.getSource() == editWorkoutType) {
@@ -333,34 +354,43 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
             workoutTypeTextField = new JTextField(currentWorkoutType);
             // Remove comps.
             panelCenter.removeAll();
-            // append all components
-            panelCenter.add(setWorkoutButtonIcon(path, new JButton()));
-            panelCenter.add(workoutName);
-            panelCenter.add(editWorkoutName);
-            panelCenter.add(workoutTypeTextField);
-            panelCenter.add(done2);
+            centerBotPanel.removeAll();
+            centerTopPanel.removeAll();
+            // append top panel components
+            centerTopPanel.add(workoutName);
+            centerTopPanel.add(editWorkoutName);
+            centerTopPanel.add(workoutTypeTextField);
+            centerTopPanel.add(done2);
+            // append bot panel components
+            centerBotPanel.add(setWorkoutButtonIcon(path, new JButton()));
+            centerBotPanel.add(caloriePanel);
+            // add to 'panelCenter'
+            panelCenter.add(centerTopPanel);
+            panelCenter.add(centerBotPanel);
 
-            panelCenter.revalidate();
-            panelCenter.repaint();
+            refreshScreen();
         } else if (e.getSource() == done) {
             String newWorkoutName = workoutNameTextField.getText();
             workoutName.setText(newWorkoutName);
-
+            // Remove comps.
             panelCenter.removeAll();
-            // append all components
-            panelCenter.add(setWorkoutButtonIcon(path, new JButton()));
-            panelCenter.add(workoutName);
-            panelCenter.add(editWorkoutName);
-            panelCenter.add(workoutType);
-            panelCenter.add(editWorkoutType);
+            centerBotPanel.removeAll();
+            centerTopPanel.removeAll();
 
-            panelCenter.revalidate();
-            panelCenter.repaint();
+            // append top panel components
+            centerTopPanel.add(workoutName);
+            centerTopPanel.add(editWorkoutName);
+            centerTopPanel.add(workoutType);
+            centerTopPanel.add(editWorkoutType);
+            // append bot panel components
+            centerBotPanel.add(setWorkoutButtonIcon(path, new JButton()));
+            // add to 'panelCenter'
+            panelCenter.add(centerTopPanel);
+            panelCenter.add(centerBotPanel);
 
-            // TODO update workout name in db
+            refreshScreen();
             try {
                 update_data_in_db(newWorkoutName, currentWorkoutName, 1);
-
             } catch (Exception err) {
                 System.out.println(err.getMessage());
             }
@@ -374,17 +404,23 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
             }
             newWorkoutType = makeFirstLetterBig(newWorkoutType);
             workoutType.setText(newWorkoutType);
-
+            // Remove comps.
             panelCenter.removeAll();
-            // append all components
-            panelCenter.add(setWorkoutButtonIcon(path, new JButton()));
-            panelCenter.add(workoutName);
-            panelCenter.add(editWorkoutName);
-            panelCenter.add(workoutType);
-            panelCenter.add(editWorkoutType);
+            centerBotPanel.removeAll();
+            centerTopPanel.removeAll();
+            // append top panel components
+            centerTopPanel.add(workoutName);
+            centerTopPanel.add(editWorkoutName);
+            centerTopPanel.add(workoutType);
+            centerTopPanel.add(editWorkoutType);
+            // append bot panel components
+            centerBotPanel.add(setWorkoutButtonIcon(path, new JButton()));
+            centerBotPanel.add(caloriePanel);
+            // add to 'panelCenter'
+            panelCenter.add(centerTopPanel);
+            panelCenter.add(centerBotPanel);
 
-            panelCenter.revalidate();
-            panelCenter.repaint();
+            refreshScreen();
 
             try {
                 update_data_in_db(newWorkoutType, currentWorkoutType, 2);
@@ -392,6 +428,11 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
                 System.out.println(err.getMessage());
             }
         }
+    }
+
+    private void refreshScreen() {
+        panelCenter.revalidate();
+        panelCenter.repaint();
     }
 
     private String makeFirstLetterBig(String newWorkoutType) {
@@ -419,15 +460,17 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
                 db.read_all_workout_type(conn, currUser.get_current_user()));
         ArrayList<String> allWPath = separate_collect_workout_datas(
                 db.read_all_workout_path(conn, currUser.get_current_user()));
+        ArrayList<String> allDuration = separate_collect_workout_datas(
+                db.read_all_workout_duration(conn, currUser.get_current_user()));
         // use switch to switch between type and name
         switch (indexNum) {
             case 1:
                 chosenArrayList = new ArrayList<>(allWName);
-                update_old_data(newWorkoutData, currentWorkoutData, allWName, allWType, allWPath, 1);
+                update_old_data(newWorkoutData, currentWorkoutData, allWName, allWType, allWPath, allDuration, 1);
                 break;
             case 2:
                 chosenArrayList = new ArrayList<>(allWType);
-                update_old_data(newWorkoutData, currentWorkoutData, allWName, allWType, allWPath, 2);
+                update_old_data(newWorkoutData, currentWorkoutData, allWName, allWType, allWPath, allDuration, 2);
                 break;
             default:
                 break;
@@ -435,7 +478,7 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
     }
 
     private void update_old_data(String newWorkoutData, String currentWorkoutData, ArrayList<String> allWName,
-            ArrayList<String> allWType, ArrayList<String> allWPath, int indexNum) throws IOException {
+            ArrayList<String> allWType, ArrayList<String> allWPath, ArrayList<String> allDuration, int indexNum) throws IOException {
         // If program finds the data we want to update, then it removes the old data and
         // appends the updated data.
         for (int i = 0; i < chosenArrayList.size(); i++) {
@@ -455,11 +498,13 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
                     db.add_workout_name(conn, chosenArrayList.get(i), currUser.get_current_user());
                     db.add_workout_type(conn, allWType.get(i), currUser.get_current_user());
                     db.add_workout_path(conn, allWPath.get(i), currUser.get_current_user());
+                    db.add_workout_duration(conn, allDuration.get(i), currUser.get_current_user());
                     break;
                 case 2:
                     db.add_workout_name(conn, allWName.get(i), currUser.get_current_user());
                     db.add_workout_type(conn, chosenArrayList.get(i), currUser.get_current_user());
                     db.add_workout_path(conn, allWPath.get(i), currUser.get_current_user());
+                    db.add_workout_duration(conn, allDuration.get(i), currUser.get_current_user());
                     break;
                 default:
                     break;

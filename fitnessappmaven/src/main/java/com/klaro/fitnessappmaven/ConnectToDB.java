@@ -422,6 +422,22 @@ public class ConnectToDB {
         return null;
     }
 
+    public String read_all_workout_burned_calorie(Connection conn, String current_user) {
+        String calorieBurned = new String();
+        String query = String.format("SELECT calorie_burned FROM my_users WHERE username = '%s'", current_user);
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            while (rs.next()) {
+                calorieBurned += rs.getString("calorie_burned");
+            }
+            return calorieBurned;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
     public String read_all_workout_type(Connection conn, String current_user) {
         String workoutTypes = new String();
         String query = String.format("SELECT workout_type FROM my_users WHERE username = '%s'", current_user);

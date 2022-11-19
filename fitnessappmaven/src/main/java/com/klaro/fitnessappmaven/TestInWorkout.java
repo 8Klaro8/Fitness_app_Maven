@@ -186,23 +186,21 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
         // get duration of workout
         String stringAllWorkoutName = db.read_all_workout_name(conn, currUser.get_current_user());
         String stringAllWorkoutDuration = db.read_all_workout_duration(conn, currUser.get_current_user());
+        String stringAllWorkoutCalorie = db.read_all_workout_burned_calorie(conn, currUser.get_current_user());
         ArrayList<String> arrayListAllWorkoutName = separate_collect_workout_datas(stringAllWorkoutName);
         ArrayList<String> arrayListAllWorkoutDuration = separate_collect_workout_datas(stringAllWorkoutDuration);
+        ArrayList<String> arrayListAllWorkoutCalorie = separate_collect_workout_datas(stringAllWorkoutCalorie);
 
         for (int i = 0; i < arrayListAllWorkoutName.size(); i++) {
             if (arrayListAllWorkoutName.get(i).equals(clickedButton)) {
                 currentDuration = arrayListAllWorkoutDuration.get(i);
+                calorie = arrayListAllWorkoutCalorie.get(i);
             }
         }
-        // read API
-        try {
-            HttpRequest response = getResponse(usersWeight, currentDuration);
-            calorie = getCalorie(response);
-            burnedCaloriesLabelNumber.setText(calorie);
-            burnedCaloriesLabelNumber.setHorizontalAlignment(SwingConstants.CENTER);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+        // assign calorie(get)
+        burnedCaloriesLabelNumber.setText(calorie);
+        burnedCaloriesLabelNumber.setHorizontalAlignment(SwingConstants.CENTER);
+
         // add comp. to 'centerTopPanel'
         addCompToCenterTopPanel();
         // add calorie components to calorie panel
@@ -221,7 +219,7 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
     }
 
     private void addToTimeWorkedOutPanel() {
-        timeWorkedOutPanel.setLayout(new GridLayout(1,2,10,10));
+        timeWorkedOutPanel.setLayout(new GridLayout(1, 2, 10, 10));
         timeWorkedOut.setText("Duration:");
         timeWorkedOut.setHorizontalAlignment(SwingConstants.CENTER);
         // get/ set workout duration
@@ -267,40 +265,6 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
         centerTopPanel.add(editWorkoutName);
         centerTopPanel.add(workoutType);
         centerTopPanel.add(editWorkoutType);
-    }
-
-    private HttpRequest getResponse(String usersWeight, String currentDuration) {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(
-                        String.format(
-                                "https://fitness-calculator.p.rapidapi.com/burnedcalorie?activityid=co_2&activitymin=%s&weight=%s",
-                                currentDuration, usersWeight)))
-                .header("X-RapidAPI-Key", "b4b40d284amshacf7b676b928e88p1a5c77jsned0db45910bf")
-                .header("X-RapidAPI-Host", "fitness-calculator.p.rapidapi.com")
-                .method("GET", HttpRequest.BodyPublishers.noBody())
-                .build();
-        return request;
-    }
-
-    private String getCalorie(HttpRequest request) throws ParseException {
-        HttpResponse<String> response;
-        try {
-            response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-            JSONParser parser = new JSONParser();
-
-            JSONObject json = (JSONObject) parser.parse(String.valueOf(response.body()));
-            Object calorieJson = json.values().toArray()[1];
-            JSONObject calorie = (JSONObject) parser.parse(String.valueOf(calorieJson));
-            return String.valueOf(calorie.get("burnedCalorie"));
-
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return null;
     }
 
     public JButton setWorkoutButtonIcon(String picPath, JButton button) {
@@ -519,7 +483,8 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
     }
 
     private void update_old_data(String newWorkoutData, String currentWorkoutData, ArrayList<String> allWName,
-            ArrayList<String> allWType, ArrayList<String> allWPath, ArrayList<String> allDuration, int indexNum) throws IOException {
+            ArrayList<String> allWType, ArrayList<String> allWPath, ArrayList<String> allDuration, int indexNum)
+            throws IOException {
         // If program finds the data we want to update, then it removes the old data and
         // appends the updated data.
         for (int i = 0; i < chosenArrayList.size(); i++) {

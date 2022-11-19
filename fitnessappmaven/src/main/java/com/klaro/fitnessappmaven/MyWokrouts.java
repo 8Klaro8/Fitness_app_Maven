@@ -5,9 +5,11 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.*;
 import javax.swing.event.MouseInputListener;
@@ -27,9 +29,18 @@ import java.awt.event.*;
 import java.io.IOException;
 import java.security.KeyStore.Entry;
 import java.sql.Connection;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -39,9 +50,10 @@ import java.util.Map;
 
 public class MyWokrouts extends JFrame implements ActionListener, MouseInputListener {
     String selectedButton = "";// temp solution for preserving selected workout - for deletion
-    // init. button(s) and panel(s)
+    // init. button(s), label(s) and panel(s)
     JButton button, backButton, test, workoutButton, addWorkout, removeWorkout;
     JPanel panelTop, panelBottom, panelRight, panelCenter, panelScroll;
+    JLabel caloriesBurnedLastWeek, caloriesBurnedLastWeekNum;
     // connect and get user
     ConnectToDB db = new ConnectToDB();
     Connection conn = db.connect_to_db("accounts", "postgres", System.getenv("PASSWORD"));
@@ -56,6 +68,8 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
     public MyWokrouts() throws IOException {
         // init. buttons
         init_buttons();
+        // init. labels
+        init_labels();
         // add action listener
         removeWorkout.addActionListener(this);
         // initialize panels
@@ -72,7 +86,12 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
         refresh();
     }
 
-    private void if_no_workout_then_redirect() {
+    public void init_labels() {
+        caloriesBurnedLastWeek = new JLabel();
+        caloriesBurnedLastWeekNum = new JLabel();
+    }
+
+    private void if_no_workout_then_redirect() throws IOException {
         if (allWorkoutName.length() < 3) {
             JOptionPane.showMessageDialog(this, "No workout added yet");
             go_to_addworkout();
@@ -100,7 +119,66 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
         adjustPanel.add(new JPanel());
         adjustPanel.add(addWorkout);
         adjustPanel.add(removeWorkout);
+        // set 'caloriesBurnedLastWeek' text
+        caloriesBurnedLastWeek.setText("Calories Burned Last Week:");
+        caloriesBurnedLastWeek.setHorizontalAlignment(SwingConstants.CENTER);
+        // set/ get 'caloriesBurnedLastWeekNum'
+        get_last_week_calorie();
+        // add calories burned label
+        adjustPanel.add(caloriesBurnedLastWeek);
         panelCenter.add(BorderLayout.CENTER, adjustPanel);
+    }
+
+    public void get_last_week_calorie() {
+        String todaysDateString = get_todays_date();
+        Date todaysDate = dateToSimpleDate(todaysDateString);
+        // todays date from string ot instant
+        try {
+            String allWorkoutDate = db.read_get_all_date(conn, currUser.get_current_user());
+            ArrayList<String> allWorkoutDateSep = separate_collect_workout_datas(allWorkoutDate);
+            for (int i = 0; i < allWorkoutDateSep.size(); i++) {
+                Date currDate = dateToSimpleDate(allWorkoutDateSep.get(i));
+                int diff = getTimeDifference(todaysDate, currDate);
+
+                // checking if date is smaller than today but not older than a week
+                if (diff < 7) { // if workouts date is no longer than 7 days then get calorie
+                    // Read other saved datas and get calorie by index
+
+                }
+
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+    }
+
+    public Date dateToSimpleDate(String date) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd", Locale.ENGLISH);
+        try {
+            return sdf.parse(date);
+        } catch (ParseException e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
+    public int getTimeDifference(Date date1, Date date2) {
+        return (int) (date1.getTime() - date2.getTime());
+    }
+
+    public String get_todays_date() {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+        LocalDateTime now = LocalDateTime.now();
+        return dtf.format(now);
+    }
+
+    public Instant stringDateToDate(String inputDate) {
+        return Instant.parse(inputDate);
+    }
+
+    public void get_time_stamp_from_db() {
+
     }
 
     private void set_top_panel() {
@@ -118,9 +196,12 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
         // set layout
         panelScroll.setLayout(new GridLayout(allWorkoutName.length(), 1, 10, 10));
         // read workout datas - name,type,path
-        ArrayList<String> collectedWorkoutNames = separate_collect_workout_datas(db.read_all_workout_name(conn, currUser.get_current_user()));
-        ArrayList<String> collectedWorkoutTypes = separate_collect_workout_datas(db.read_all_workout_type(conn, currUser.get_current_user()));
-        ArrayList<String> collectedWorkoutPaths = separate_collect_workout_datas(db.read_all_workout_path(conn, currUser.get_current_user()));
+        ArrayList<String> collectedWorkoutNames = separate_collect_workout_datas(
+                db.read_all_workout_name(conn, currUser.get_current_user()));
+        ArrayList<String> collectedWorkoutTypes = separate_collect_workout_datas(
+                db.read_all_workout_type(conn, currUser.get_current_user()));
+        ArrayList<String> collectedWorkoutPaths = separate_collect_workout_datas(
+                db.read_all_workout_path(conn, currUser.get_current_user()));
         JButton currWorkoutButton;
 
         create_workout_buttons(panelScroll, collectedWorkoutNames, collectedWorkoutPaths);
@@ -205,7 +286,7 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
         new HomeSite();
     }
 
-    public void go_to_addworkout() {
+    public void go_to_addworkout() throws IOException {
         this.dispose();
         new AddWorkout();
     }
@@ -236,8 +317,13 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
                 System.out.println(err.getMessage());
             }
         } else if (e.getSource() == addWorkout) {
-            go_to_addworkout();
-        }else if (e.getSource() == removeWorkout) {
+            try {
+                go_to_addworkout();
+            } catch (IOException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
+        } else if (e.getSource() == removeWorkout) {
             try {
                 delete_selected_workout();
                 this.dispose();
@@ -250,10 +336,14 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
 
     private void delete_selected_workout() throws IOException {
         // get the index of the chosen workout by it's name
-        ArrayList<String> collectedWorkoutNames = separate_collect_workout_datas(db.read_all_workout_name(conn, currUser.get_current_user()));
-        ArrayList<String> collectedWorkoutTypes = separate_collect_workout_datas(db.read_all_workout_type(conn, currUser.get_current_user()));
-        ArrayList<String> collectedWorkoutPaths = separate_collect_workout_datas(db.read_all_workout_path(conn, currUser.get_current_user()));
-        ArrayList<String> collectedWorkoutdurations = separate_collect_workout_datas(db.read_all_workout_duration(conn, currUser.get_current_user()));
+        ArrayList<String> collectedWorkoutNames = separate_collect_workout_datas(
+                db.read_all_workout_name(conn, currUser.get_current_user()));
+        ArrayList<String> collectedWorkoutTypes = separate_collect_workout_datas(
+                db.read_all_workout_type(conn, currUser.get_current_user()));
+        ArrayList<String> collectedWorkoutPaths = separate_collect_workout_datas(
+                db.read_all_workout_path(conn, currUser.get_current_user()));
+        ArrayList<String> collectedWorkoutdurations = separate_collect_workout_datas(
+                db.read_all_workout_duration(conn, currUser.get_current_user()));
 
         for (int i = 0; i < collectedWorkoutNames.size(); i++) {
             if (collectedWorkoutNames.get(i).equals(selectedButton)) {

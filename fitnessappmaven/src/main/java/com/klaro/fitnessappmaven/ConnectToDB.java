@@ -185,7 +185,7 @@ public class ConnectToDB {
     }
 
     public void add_user(Connection conn, String username, String hashed_password, String first_name,
-            String last_name, String profPic, String height, String weight, String timeWorkedOut) {
+            String last_name, String profPic, String height, String weight, String timeWorkedOut, String date, String calorie_burned) {
         /**
          * Creates user to account db
          * 
@@ -200,9 +200,9 @@ public class ConnectToDB {
         Statement statement;
         try {
             String query = String.format(
-                    "insert into my_users (username, password, firstname, lastname, prof_image, height, weight, workout_duration) values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');",
+                    "insert into my_users (username, password, firstname, lastname, prof_image, height, weight, workout_duration, date, calorie_burned) values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');",
                     username,
-                    hashed_password, first_name, last_name, profPic, height, weight, timeWorkedOut);
+                    hashed_password, first_name, last_name, profPic, height, weight, timeWorkedOut, date, calorie_burned);
             statement = conn.createStatement();
             statement.executeUpdate(query);
             System.out.println("Row inserted!");
@@ -573,6 +573,30 @@ public class ConnectToDB {
         
     }
 
+    public void add_workout_date(Connection conn, String date, String current_user) {
+        String query = String.format("UPDATE my_users set date = date || '%s, ' WHERE username = '%s';", date, current_user);
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeUpdate(query);
+            System.out.println("Workout date added successfuly!");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        
+    }
+
+    public void add_workout_burned_calorie(Connection conn, String calorie_burned, String current_user) {
+        String query = String.format("UPDATE my_users set calorie_burned = calorie_burned || '%s, ' WHERE username = '%s';", calorie_burned, current_user);
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeUpdate(query);
+            System.out.println("Workout calorie_burned added successfuly!");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        
+    }
+
     public String read_users_weight(Connection conn, String current_user) {
         String query = String.format("SELECT weight FROM my_users WHERE username = '%s'", current_user);
         try {
@@ -586,6 +610,38 @@ public class ConnectToDB {
             System.out.println(e.getMessage());
         }
         return null;
+    }
+
+    public String read_get_all_date(Connection conn, String current_user) {
+        String value = "";
+        String query = String.format("SELECT date FROM my_users WHERE username = '%s'", current_user);
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            while (rs.next()) {
+                value += rs.getString("date");
+            }
+            return value;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return value;
+    }
+    
+    public String get_weight_by_username(Connection conn, String current_user) {
+        String weight = "";
+        String query = String.format("SELECT weight FROM my_users WHERE username = '%s'", current_user);
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            while (rs.next()) {
+                weight += rs.getString("weight");
+            }
+            return weight;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return weight;
+        }
     }
 
 }

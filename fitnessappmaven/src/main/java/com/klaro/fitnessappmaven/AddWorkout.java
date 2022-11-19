@@ -4,15 +4,26 @@ import javax.swing.border.*;
 import javax.swing.plaf.metal.OceanTheme;
 import javax.swing.plaf.synth.SynthSpinnerUI;
 
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
 import java.awt.*;
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.sql.Connection;
 import java.text.BreakIterator;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.awt.event.*;
 import javax.swing.*;
+
+import com.github.underscore.Json.ParseException;
 import com.google.gson.*;
 
 /**
@@ -34,8 +45,11 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
     Gson myGson = new Gson();
     // workout datas to save
     String workoutType, workoutPath, workoutName;
+    String currUsername = null;
 
-    public AddWorkout() {
+    public AddWorkout() throws IOException {
+        // init curr. user
+        currUsername = currentUser.get_current_user();
         workoutList = new WorkoutList(); // workout icons
         // init. label(s)
         workoutTitleLabel = new JLabel("Workout's title", SwingConstants.CENTER);
@@ -192,10 +206,20 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
             workoutPath = String.valueOf(button3.getIcon());
         }
         if (e.getSource() == addWorkout) {
+            String workoutDurationText = timeWorkedOutInput.getText().strip();
+
             // TODO check if workout name contians forbidden characters, like: ''
-            workoutName = workoutTitleInput.getText(); // get workout's name/title
+            workoutName = workoutTitleInput.getText().strip(); // get workout's name/title
+
+            // check if workout duration is numeric
+            for (int i = 0; i < workoutDurationText.length(); i++) {
+                if (Character.isDigit(workoutDurationText.charAt(i)) == false) {
+                    JOptionPane.showMessageDialog(this, "Type only number!");
+                    return;
+                }
+            }
             // get workout duration
-            if (timeWorkedOutInput.getText().isEmpty()) {
+            if (workoutDurationText.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Type workout duration!");
                 return;
             }
@@ -217,10 +241,15 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
                 return;
             } else {
                 try {
-                    db.add_workout_name(conn, workoutName, currentUser.get_current_user());
-                    db.add_workout_type(conn, workoutType, currentUser.get_current_user());
-                    db.add_workout_path(conn, workoutPath, currentUser.get_current_user());
-                    db.add_workout_duration(conn, timeWorkedOutInput.getText(), currentUser.get_current_user());
+                    db.add_workout_name(conn, workoutName, currUsername);
+                    db.add_workout_type(conn, workoutType, currUsername);
+                    db.add_workout_path(conn, workoutPath, currUsername);
+                    db.add_workout_duration(conn, workoutDurationText, currUsername);
+                    db.add_workout_date(conn, get_date_now(), currUsername);
+                    // get users weight
+                    String weight = db.get_weight_by_username(conn, currUsername);
+                    db.add_workout_burned_calorie(conn, getCalorie(getResponse(weight, workoutDurationText)), currUsername);
+
                     JOptionPane.showMessageDialog(this, "Workout added Successfuly!");
                     go_back_to_my_workouts();
                 } catch (Exception err) {
@@ -278,15 +307,55 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
     public boolean workout_name_exists() {
         try {
             ArrayList<String> allWorkoutName = separate_collect_workout_datas(
-                    db.read_all_workout_name(conn, currentUser.get_current_user()));
+                    db.read_all_workout_name(conn, currUsername));
             for (String wName : allWorkoutName) {
                 if (wName.equalsIgnoreCase(workoutName)) {
                     return true;
                 }
             }
-        } catch (IOException e1) {
+        } catch (Exception e1) {
             System.out.println(e1.getMessage());
         }
         return false;
+    }
+
+    private HttpRequest getResponse(String usersWeight, String currentDuration) {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(
+                        String.format(
+                                "https://fitness-calculator.p.rapidapi.com/burnedcalorie?activityid=co_2&activitymin=%s&weight=%s",
+                                currentDuration, usersWeight)))
+                .header("X-RapidAPI-Key", "b4b40d284amshacf7b676b928e88p1a5c77jsned0db45910bf")
+                .header("X-RapidAPI-Host", "fitness-calculator.p.rapidapi.com")
+                .method("GET", HttpRequest.BodyPublishers.noBody())
+                .build();
+        return request;
+    }
+
+    private String getCalorie(HttpRequest request) throws org.json.simple.parser.ParseException {
+        HttpResponse<String> response;
+        try {
+            response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+            JSONParser parser = new JSONParser();
+
+            JSONObject json = (JSONObject) parser.parse(String.valueOf(response.body()));
+            Object calorieJson = json.values().toArray()[1];
+            JSONObject calorie = (JSONObject) parser.parse(String.valueOf(calorieJson));
+            return String.valueOf(calorie.get("burnedCalorie"));
+
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public String get_date_now() {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+        LocalDateTime now =  LocalDateTime.now();
+        return String.valueOf(dtf.format(now));
     }
 }

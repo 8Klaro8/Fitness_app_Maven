@@ -59,10 +59,10 @@ public final class Main {
         // String current_user = getUser.get_current_user();
 
         // ReadAPI calorieAPI = new ReadAPI("40", "78");
-        // new RegisterFrame();
+        new RegisterFrame();
         // new TestRegisterFrame();
         // new AddWorkout();
-        new MyWokrouts();
+        // new MyWokrouts();
         // new ChangeProfile();
         // new MyFrame();
         // new HomeSite();

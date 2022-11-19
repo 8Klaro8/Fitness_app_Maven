@@ -37,9 +37,9 @@ import java.util.HashMap;
 
 public class TestInWorkout extends JFrame implements ActionListener, java.awt.event.ActionListener, MouseInputListener {
     JPanel panelTop, panelRight, panelBottom, panelLeft, panelCenter, centerPanelSeparator, centerTopPanel,
-            centerBotPanel, caloriePanel;
+            centerBotPanel, caloriePanel, timeWorkedOutPanel;
     JButton backButton, editWorkoutName, editWorkoutType, done, done2;
-    JLabel workoutName, workoutType, burnedCaloriesLabel, burnedCaloriesLabelNumber;
+    JLabel workoutName, workoutType, burnedCaloriesLabel, burnedCaloriesLabelNumber, timeWorkedOut, timeWorkedOutNum;
     JTextField workoutNameTextField, workoutTypeTextField;
     String path, name, type, currentWorkoutName, currentWorkoutType, clickedButton, calorie;
     ArrayList<String> chosenArrayList;
@@ -52,6 +52,8 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
         // init button and set font
         initButtons();
         // init labels
+        timeWorkedOut = new JLabel();
+        timeWorkedOutNum = new JLabel();
         burnedCaloriesLabel = new JLabel("Burned Calories", SwingConstants.CENTER);
         burnedCaloriesLabelNumber = new JLabel();
 
@@ -108,6 +110,7 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
         centerTopPanel = new JPanel();
         centerBotPanel = new JPanel();
         caloriePanel = new JPanel();
+        timeWorkedOutPanel = new JPanel();
     }
 
     public void setup() {
@@ -204,6 +207,8 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
         addCompToCenterTopPanel();
         // add calorie components to calorie panel
         addToCaloriePanel();
+        // add to timeWorkedOutLabel
+        addToTimeWorkedOutPanel();
         // add comp. to bot panel
         addToCenterBotPanel(path);
         // add sub panels to 'panelCenter'
@@ -215,9 +220,40 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
         panelCenter.add(centerBotPanel);
     }
 
+    private void addToTimeWorkedOutPanel() {
+        timeWorkedOutPanel.setLayout(new GridLayout(1,2,10,10));
+        timeWorkedOut.setText("Duration:");
+        timeWorkedOut.setHorizontalAlignment(SwingConstants.CENTER);
+        // get/ set workout duration
+        timeWorkedOutNum.setText(getWorkoutDuration() + " min");
+        timeWorkedOutNum.setHorizontalAlignment(SwingConstants.CENTER);
+        timeWorkedOutPanel.add(timeWorkedOut);
+        timeWorkedOutPanel.add(timeWorkedOutNum);
+    }
+
+    private String getWorkoutDuration() {
+        try {
+            String readWorkoutName = db.read_all_workout_name(conn, currUser.get_current_user());
+            ArrayList<String> allWorkoutNameList = separate_collect_workout_datas(readWorkoutName);
+            String readWorkoutDuration = db.read_all_workout_duration(conn, currUser.get_current_user());
+            ArrayList<String> allWorkoutDurationList = separate_collect_workout_datas(readWorkoutDuration);
+            for (int i = 0; i < allWorkoutNameList.size(); i++) {
+                if (allWorkoutNameList.get(i).equals(workoutName.getText())) {
+                    return allWorkoutDurationList.get(i);
+                }
+            }
+
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
     private void addToCenterBotPanel(String path) {
         centerBotPanel.add(setWorkoutButtonIcon(path, new JButton()));
         centerBotPanel.add(caloriePanel);
+        // add time worked out
+        centerBotPanel.add(timeWorkedOutPanel);
     }
 
     private void addToCaloriePanel() {
@@ -237,7 +273,7 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(
                         String.format(
-                                "https://fitness-calculator.p.rapidapi.com/burnedcalorie?activityid=bi_2&activitymin=%s&weight=%s",
+                                "https://fitness-calculator.p.rapidapi.com/burnedcalorie?activityid=co_2&activitymin=%s&weight=%s",
                                 currentDuration, usersWeight)))
                 .header("X-RapidAPI-Key", "b4b40d284amshacf7b676b928e88p1a5c77jsned0db45910bf")
                 .header("X-RapidAPI-Host", "fitness-calculator.p.rapidapi.com")
@@ -343,6 +379,7 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
             // append bot panel components
             centerBotPanel.add(setWorkoutButtonIcon(path, new JButton()));
             centerBotPanel.add(caloriePanel);
+            centerBotPanel.add(timeWorkedOutPanel);
             // add to 'panelCenter'
             panelCenter.add(centerTopPanel);
             panelCenter.add(centerBotPanel);
@@ -364,6 +401,7 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
             // append bot panel components
             centerBotPanel.add(setWorkoutButtonIcon(path, new JButton()));
             centerBotPanel.add(caloriePanel);
+            centerBotPanel.add(timeWorkedOutPanel);
             // add to 'panelCenter'
             panelCenter.add(centerTopPanel);
             panelCenter.add(centerBotPanel);
@@ -384,6 +422,8 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
             centerTopPanel.add(editWorkoutType);
             // append bot panel components
             centerBotPanel.add(setWorkoutButtonIcon(path, new JButton()));
+            centerBotPanel.add(caloriePanel);
+            centerBotPanel.add(timeWorkedOutPanel);
             // add to 'panelCenter'
             panelCenter.add(centerTopPanel);
             panelCenter.add(centerBotPanel);
@@ -416,6 +456,7 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
             // append bot panel components
             centerBotPanel.add(setWorkoutButtonIcon(path, new JButton()));
             centerBotPanel.add(caloriePanel);
+            centerBotPanel.add(timeWorkedOutPanel);
             // add to 'panelCenter'
             panelCenter.add(centerTopPanel);
             panelCenter.add(centerBotPanel);

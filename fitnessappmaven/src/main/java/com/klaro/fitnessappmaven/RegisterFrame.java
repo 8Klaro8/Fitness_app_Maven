@@ -150,6 +150,15 @@ public class RegisterFrame extends JFrame implements ActionListener, LoginFormIn
                     JOptionPane.showMessageDialog(this, "Please give a height and weight.");
                     return;
                 }
+                if (Integer.valueOf(weight.getText()) < 40 || Integer.valueOf(weight.getText()) > 160) {
+                    JOptionPane.showMessageDialog(this, "Weight must be between 40kg and 160kg.");
+                    return;
+                }
+                if (Integer.valueOf(height.getText()) < 100) {
+                    JOptionPane.showMessageDialog(this, "Height can't be lower than 100cm.");
+                    return;
+                }
+
                 // Hash password
                 try {
                     // Basic profile image
@@ -160,7 +169,7 @@ public class RegisterFrame extends JFrame implements ActionListener, LoginFormIn
                     // control if username exists in DB
                     boolean usernameExists = db.username_exists(conn, "my_users", username);
                     if (!(usernameExists)) {
-                        db.add_user(conn, username, hashedPW, ", ", ", ", BASE_PROF_PIC, height.getText(), weight.getText(), ", ");
+                        db.add_user(conn, username, hashedPW, ", ", ", ", BASE_PROF_PIC, height.getText(), weight.getText(), ", ", ", ", ", ");
 
                         // Login freshly registered user
                         currUserMethod.set_current_user(username);

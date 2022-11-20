@@ -38,7 +38,7 @@ import java.util.HashMap;
 public class TestInWorkout extends JFrame implements ActionListener, java.awt.event.ActionListener, MouseInputListener {
     JPanel panelTop, panelRight, panelBottom, panelLeft, panelCenter, centerPanelSeparator, centerTopPanel,
             centerBotPanel, caloriePanel, timeWorkedOutPanel;
-    JButton backButton, editWorkoutName, editWorkoutType, done, done2;
+    JButton backButton, editWorkoutName, editWorkoutType, done, done2, workoutIcon;
     JLabel workoutName, workoutType, burnedCaloriesLabel, burnedCaloriesLabelNumber, timeWorkedOut, timeWorkedOutNum;
     JTextField workoutNameTextField, workoutTypeTextField;
     String path, name, type, currentWorkoutName, currentWorkoutType, clickedButton, calorie;
@@ -98,6 +98,7 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
         done2 = new JButton("Done!");
         editWorkoutName = new JButton("Edit Workout title");
         editWorkoutType = new JButton("Edit Workout type");
+        workoutIcon = new JButton();
     }
 
     private void initPanels() {
@@ -248,7 +249,11 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
     }
 
     private void addToCenterBotPanel(String path) {
-        centerBotPanel.add(setWorkoutButtonIcon(path, new JButton()));
+        // assign workout button icon
+        workoutIcon = setWorkoutButtonIcon(path, workoutIcon);
+        workoutIcon.addActionListener(this);
+        // centerBotPanel.add(setWorkoutButtonIcon(path, new JButton()));
+        centerBotPanel.add(workoutIcon);
         centerBotPanel.add(caloriePanel);
         // add time worked out
         centerBotPanel.add(timeWorkedOutPanel);
@@ -433,6 +438,20 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
                 System.out.println(err.getMessage());
             }
         }
+
+        else if(e.getSource() == workoutIcon){
+            try {
+                go_to_ChooseWorkoutIcon();
+            } catch (IOException e1) {
+                System.out.println(e.getModifiers());
+            }
+        }
+    }
+
+    private void go_to_ChooseWorkoutIcon() throws IOException {
+        currentWorkoutName = workoutName.getText();
+        this.dispose();
+        new ChooseWorkoutIcon(currentWorkoutName);
     }
 
     private void refreshScreen() {
@@ -524,6 +543,7 @@ public class TestInWorkout extends JFrame implements ActionListener, java.awt.ev
     public void mouseClicked(MouseEvent e) {
         if (e.getClickCount() == 2) {
             if (e.getComponent().getName() == workoutName.getName()) {
+                System.out.println("YEE");
             }
         }
     }

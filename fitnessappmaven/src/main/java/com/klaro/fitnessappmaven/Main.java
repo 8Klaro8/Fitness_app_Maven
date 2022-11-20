@@ -59,12 +59,12 @@ public final class Main {
         // String current_user = getUser.get_current_user();
 
         // ReadAPI calorieAPI = new ReadAPI("40", "78");
-        new RegisterFrame();
+        // new RegisterFrame();
         // new TestRegisterFrame();
         // new AddWorkout();
         // new MyWokrouts();
         // new ChangeProfile();
-        // new MyFrame();
+        new MyFrame();
         // new HomeSite();
         // ConnectToDB db = new ConnectToDB();
         // Connection conn = db.connect_to_db("accounts", "postgres", System.getenv("PASSWORD"));

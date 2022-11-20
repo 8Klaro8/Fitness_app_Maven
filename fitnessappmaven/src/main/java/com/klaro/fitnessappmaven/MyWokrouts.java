@@ -42,6 +42,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * MyWokrouts
@@ -50,6 +51,7 @@ import java.util.Map;
 
 public class MyWokrouts extends JFrame implements ActionListener, MouseInputListener {
     String selectedButton = "";// temp solution for preserving selected workout - for deletion
+    float allCalorieBurnedLastWeek;
     // init. button(s), label(s) and panel(s)
     JButton button, backButton, test, workoutButton, addWorkout, removeWorkout;
     JPanel panelTop, panelBottom, panelRight, panelCenter, panelScroll;
@@ -120,37 +122,52 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
         adjustPanel.add(addWorkout);
         adjustPanel.add(removeWorkout);
         // set 'caloriesBurnedLastWeek' text
-        caloriesBurnedLastWeek.setText("Calories Burned Last Week:");
+        caloriesBurnedLastWeek.setText("Calories Burned Last 7 Days:");
         caloriesBurnedLastWeek.setHorizontalAlignment(SwingConstants.CENTER);
         // set/ get 'caloriesBurnedLastWeekNum'
         get_last_week_calorie();
         // add calories burned label
         adjustPanel.add(caloriesBurnedLastWeek);
+        adjustPanel.add(caloriesBurnedLastWeekNum);
         panelCenter.add(BorderLayout.CENTER, adjustPanel);
     }
 
     public void get_last_week_calorie() {
+        // get 'todaysDate'
         String todaysDateString = get_todays_date();
+        // inti 'todaysDate'
         Date todaysDate = dateToSimpleDate(todaysDateString);
-        // todays date from string ot instant
+        // init 'allCalorieBurnedLastWeek'
+        allCalorieBurnedLastWeek = 0;
         try {
             String allWorkoutDate = db.read_get_all_date(conn, currUser.get_current_user());
+            String allWorkoutBurnedCalorie = db.read_all_workout_burned_calorie(conn, currUser.get_current_user());
             ArrayList<String> allWorkoutDateSep = separate_collect_workout_datas(allWorkoutDate);
+            ArrayList<String> allWorkoutBurnedCalorieSep = separate_collect_workout_datas(allWorkoutBurnedCalorie);
             for (int i = 0; i < allWorkoutDateSep.size(); i++) {
+                // get current date
                 Date currDate = dateToSimpleDate(allWorkoutDateSep.get(i));
-                int diff = getTimeDifference(todaysDate, currDate);
-
+                // get timedifference in miliseconds
+                long timeDiff = todaysDate.getTime() - currDate.getTime();
+                // transform miliseconds to days
+                long dayDiff = TimeUnit.MILLISECONDS.toDays(timeDiff) % 365;
                 // checking if date is smaller than today but not older than a week
-                if (diff < 7) { // if workouts date is no longer than 7 days then get calorie
+                if (dayDiff < 7) { // if workouts date is no longer than 7 days then get calorie
                     // Read other saved datas and get calorie by index
-
+                    allCalorieBurnedLastWeek += Float.valueOf(allWorkoutBurnedCalorieSep.get(i));
                 }
-
             }
+            // set caloriedBuned font properties
+            setCaloriesBurnedText();
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+    }
 
+    private void setCaloriesBurnedText() {
+        caloriesBurnedLastWeekNum.setText(String.valueOf(allCalorieBurnedLastWeek));
+        caloriesBurnedLastWeekNum.setHorizontalAlignment(SwingConstants.CENTER);
+        caloriesBurnedLastWeekNum.setFont(new Font(caloriesBurnedLastWeekNum.getFont().getName(), caloriesBurnedLastWeekNum.getFont().getStyle(), 20));
     }
 
     public Date dateToSimpleDate(String date) {
@@ -359,7 +376,6 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
                         collectedWorkoutTypes.remove(i);
                         collectedWorkoutPaths.remove(i);
                         collectedWorkoutdurations.remove(i);
-
                     }
                     break;
                 }

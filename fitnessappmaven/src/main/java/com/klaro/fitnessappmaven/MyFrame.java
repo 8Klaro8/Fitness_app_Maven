@@ -34,12 +34,10 @@ public class MyFrame extends JFrame implements ActionListener, LoginFormInterFac
     CurrentUser currUserMethod = new CurrentUser();
 
     // labels & buttons
-    JLabel userLabel;
-    JLabel passwordLabel;
+    JLabel userLabel, passwordLabel;
     JTextField userTextfield;
     JPasswordField passwordTextfield;
-    JButton loginButton;
-    JButton registerButton;
+    JButton loginButton, registerButton;
     JCheckBox showPassword;
 
     MyFrame() {
@@ -187,6 +185,3 @@ public class MyFrame extends JFrame implements ActionListener, LoginFormInterFac
         new RegisterFrame();
     }
 }
-
-/* Refresh window -> */
-// SwingUtilities.updateComponentTreeUI(this);

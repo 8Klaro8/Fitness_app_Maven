@@ -257,6 +257,7 @@ public class ConnectToDB {
         return null;
     }
 
+
     public void set_prof_pic_path(Connection conn, String table_name, String updated_value, String username) {
         /**
          * Sets the current users profile pic by path
@@ -382,30 +383,6 @@ public class ConnectToDB {
         }
     }
 
-    public void insert_workout(Connection conn, String value, String current_user) {
-        String query = String.format("INSERT INTO my_uers (json_workouts) VALUES '%s' WHERE username = '%s';", value,
-                current_user);
-        try {
-            Statement statement = conn.createStatement();
-            statement.executeQuery(query);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-    }
-
-    public void clear_json_column(Connection conn, String current_user) {
-        String query = String.format("update my_users set json_workouts = null where username='%s';", current_user);
-        try {
-            Statement statmeent = conn.createStatement();
-            statmeent.executeQuery(query);
-            System.out.println("Json column has been cleared");
-
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-    }
-
-
     public String read_all_workout_name(Connection conn, String current_user) {
         String workoutNames = new String();
         String query = String.format("SELECT workout_name FROM my_users WHERE username = '%s'", current_user);
@@ -497,6 +474,7 @@ public class ConnectToDB {
         }
         
     }
+    
     public void add_workout_path(Connection conn, String workoutPath, String current_user) {
         String query = String.format("UPDATE my_users set workout_path = workout_path || '%s, ' WHERE username = '%s';", workoutPath, current_user);
         try {
@@ -657,6 +635,17 @@ public class ConnectToDB {
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return weight;
+        }
+    }
+
+    public void remove_all_icon_path(Connection conn, String current_user) {
+        String query = String.format("UPDATE my_users SET workout_path = ', ' WHERE username = '%s'", current_user);
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeQuery(query);
+            System.out.println("Icon path cleared!");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
     }
 

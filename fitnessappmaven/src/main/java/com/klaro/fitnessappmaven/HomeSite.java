@@ -12,11 +12,13 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.MouseInputListener;
 import javax.swing.plaf.OptionPaneUI;
 import javax.swing.plaf.metal.OceanTheme;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -25,47 +27,30 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.awt.image.BufferedImage;
 
-public class HomeSite extends JFrame implements ActionListener {
+public class HomeSite extends JFrame implements ActionListener, MouseInputListener {
     
     // initialize container
     Container container;
-    JLabel profPicLabel;
-    JLabel labelImage;
-    JButton logout;
-    JButton changeProfilePic;
-    JButton myWorkouts;
+    JLabel profPicLabel, labelImage, settings;
+    JButton logout, changeProfilePic, myWorkouts;
     SetProfileImage setProf = new SetProfileImage();
     public final String USER_FILE_PATH = "fitnessappmaven\\src\\main\\java\\com\\klaro\\fitnessappmaven\\current_user\\current_user.txt";
     public final String LOGO_PIC_PATH = "fitnessappmaven\\src\\main\\java\\com\\klaro\\fitnessappmaven\\Logo\\lgo.png";
     CurrentUser getCurrUser = new CurrentUser();
+    ConnectToDB db = new ConnectToDB();
+    Connection conn = db.connect_to_db("accounts", "postgres", System.getenv("PASSWORD"));
+    String currentUser = getCurrUser.get_current_user();
 
     HomeSite() throws IOException {
-
         SwingUtilities.updateComponentTreeUI(this); // refresh page
         container = getContentPane();
         container.setLayout(new BoxLayout(container, BoxLayout.LINE_AXIS));
 
         // this.frame settngs
-        this.setTitle("My IT app");
-        this.setVisible(true);
-        this.setBounds(10, 10, 370, 500);
-        this.setDefaultCloseOperation(this.EXIT_ON_CLOSE);
-        this.setResizable(false);
-        this.setLocationRelativeTo(null);
+        setupFrame();
 
         // labels & buttons
-        profPicLabel = new JLabel();
-        logout = new JButton("Logout");
-        changeProfilePic = new JButton("Change Profile");
-        myWorkouts = new JButton("My Wokrouts");
-
-        // add image to label
-        // TODO insert here current prof pic path from db
-        ConnectToDB db = new ConnectToDB();
-        Connection conn = db.connect_to_db("accounts", "postgres", System.getenv("PASSWORD"));
-        // read current user from txt file
-        String currentUser = getCurrUser.get_current_user();
-        // TODO get current user's username who is logged in
+        initAndSetLabelsAnButtons();
         String baseProfPic = db.get_prof_pic_path(conn, "my_users", currentUser);
         profPicLabel = setProf.setBasicProfPic(profPicLabel, baseProfPic);
 
@@ -76,6 +61,26 @@ public class HomeSite extends JFrame implements ActionListener {
 
         HomeSiteFrame();
         SwingUtilities.updateComponentTreeUI(this); // refresh page
+    }
+
+    private void initAndSetLabelsAnButtons() {
+        profPicLabel = new JLabel();
+        settings = new JLabel();
+        settings.setText("Settings");
+        profPicLabel.setName("profPicLabel");
+        profPicLabel.addMouseListener(this);
+        logout = new JButton("Logout");
+        changeProfilePic = new JButton("Change Profile");
+        myWorkouts = new JButton("My Wokrouts");
+    }
+
+    private void setupFrame() {
+        this.setTitle("My IT app");
+        this.setVisible(true);
+        this.setBounds(10, 10, 370, 500);
+        this.setDefaultCloseOperation(this.EXIT_ON_CLOSE);
+        this.setResizable(false);
+        this.setLocationRelativeTo(null);
     }
 
     // Sets up login screen/ frame
@@ -159,6 +164,55 @@ public class HomeSite extends JFrame implements ActionListener {
     public void go_to_workouts() throws IOException {
         this.dispose();
         new MyWokrouts();
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        if (e.getClickCount() == 2) {
+            if (e.getComponent().getName() == profPicLabel.getName()) {
+                try {
+                    go_to_ChangeProfile();
+                } catch (IOException e1) {
+                    System.out.println(e1.getMessage());
+                }
+            }
+        }
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void mouseDragged(MouseEvent e) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
+        // TODO Auto-generated method stub
+        
     }
 }
 

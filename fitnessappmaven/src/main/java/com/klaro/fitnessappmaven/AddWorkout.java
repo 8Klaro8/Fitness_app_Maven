@@ -92,7 +92,7 @@ public class AddWorkout extends JFrame implements ItemListener, ActionListener {
 
     public JPanel create_workoutScrollPanel() {
         JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(3, 1, 5, 5));
+        panel.setLayout(new GridLayout(3, 1, 5, 10));
         button = new JButton();
         button = setWorkoutButtonIcon(workoutList.WORKOUT_PIC_1, button);
 

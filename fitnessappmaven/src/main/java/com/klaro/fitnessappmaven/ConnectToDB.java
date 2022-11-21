@@ -113,7 +113,7 @@ public class ConnectToDB {
         }
     }
 
-    public ResultSet get_by_name(Connection conn, String table_name, String name) {
+    public ArrayList<String> get_by_name(Connection conn, String current_user) {
         /**
          * Prints all feld of the searched item
          * 
@@ -123,8 +123,9 @@ public class ConnectToDB {
          */
         Statement statement;
         ResultSet result = null;
+        ArrayList<String> stringList = new ArrayList<String>();
         try {
-            String query = String.format("select * from %s where username='%s'", table_name, name);
+            String query = String.format("select * from my_users where username='%s'", current_user);
             statement = conn.createStatement();
             result = statement.executeQuery(query);
             try {
@@ -133,7 +134,7 @@ public class ConnectToDB {
                 while (result.next()) {
                     for (int i = 1; i <= columnCount; i++) {
                         String columnValue = result.getString(i);
-                        System.out.println(resultMT.getColumnName(i) + ": " + columnValue);
+                        stringList.add(columnValue);
                     }
                 }
             } catch (Exception e) {
@@ -142,7 +143,7 @@ public class ConnectToDB {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-        return result;
+        return stringList;
     }
 
     public void delete_row(Connection conn, String table_name, int id) {
@@ -185,7 +186,8 @@ public class ConnectToDB {
     }
 
     public void add_user(Connection conn, String username, String hashed_password, String first_name,
-            String last_name, String profPic, String height, String weight, String timeWorkedOut, String date, String calorie_burned) {
+            String last_name, String profPic, String height, String weight, String timeWorkedOut, String date,
+            String calorie_burned, String email) {
         /**
          * Creates user to account db
          * 
@@ -200,9 +202,10 @@ public class ConnectToDB {
         Statement statement;
         try {
             String query = String.format(
-                    "insert into my_users (username, password, firstname, lastname, prof_image, height, weight, workout_duration, date, calorie_burned) values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');",
+                    "insert into my_users (username, password, firstname, lastname, prof_image, height, weight, workout_duration, date, calorie_burned, email) values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');",
                     username,
-                    hashed_password, first_name, last_name, profPic, height, weight, timeWorkedOut, date, calorie_burned);
+                    hashed_password, first_name, last_name, profPic, height, weight, timeWorkedOut, date,
+                    calorie_burned, email);
             statement = conn.createStatement();
             statement.executeUpdate(query);
             System.out.println("Row inserted!");
@@ -256,7 +259,6 @@ public class ConnectToDB {
         }
         return null;
     }
-
 
     public void set_prof_pic_path(Connection conn, String table_name, String updated_value, String username) {
         /**
@@ -349,15 +351,19 @@ public class ConnectToDB {
     // END
     // ) || '["newString"]'::JSONB WHERE id = 7;
 
-    public boolean username_exists(Connection conn, String table_name, String username) {
-        String query = String.format("SELECT username IN %s WHERE username='%s'", table_name, username);
+    public boolean username_exists(Connection conn, String username) {
+        String query = String.format("SELECT username FROM my_users WHERE username='%s'", username);
         try {
             Statement statement = conn.createStatement();
-            statement.executeQuery(query);
-            return true;
-        } catch (Exception e) {
+            ResultSet rs = statement.executeQuery(query);
+            while (rs.next()) {
+                return true;
+
+            }
             return false;
-            // System.out.println(e.getMessage());
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return false;
         }
     }
 
@@ -464,7 +470,8 @@ public class ConnectToDB {
     }
 
     public void add_workout_name(Connection conn, String workoutName, String current_user) {
-        String query = String.format("UPDATE my_users set workout_name = workout_name || '%s, ' WHERE username = '%s';", workoutName, current_user);
+        String query = String.format("UPDATE my_users set workout_name = workout_name || '%s, ' WHERE username = '%s';",
+                workoutName, current_user);
         try {
             Statement statement = conn.createStatement();
             statement.executeUpdate(query);
@@ -472,11 +479,12 @@ public class ConnectToDB {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-        
+
     }
-    
+
     public void add_workout_path(Connection conn, String workoutPath, String current_user) {
-        String query = String.format("UPDATE my_users set workout_path = workout_path || '%s, ' WHERE username = '%s';", workoutPath, current_user);
+        String query = String.format("UPDATE my_users set workout_path = workout_path || '%s, ' WHERE username = '%s';",
+                workoutPath, current_user);
         try {
             Statement statement = conn.createStatement();
             statement.executeUpdate(query);
@@ -484,11 +492,12 @@ public class ConnectToDB {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-        
+
     }
 
     public void add_workout_type(Connection conn, String workoutType, String current_user) {
-        String query = String.format("UPDATE my_users set workout_type = workout_type || '%s, ' WHERE username = '%s';", workoutType, current_user);
+        String query = String.format("UPDATE my_users set workout_type = workout_type || '%s, ' WHERE username = '%s';",
+                workoutType, current_user);
         try {
             Statement statement = conn.createStatement();
             statement.executeUpdate(query);
@@ -496,19 +505,23 @@ public class ConnectToDB {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-        
+
     }
 
     public void insert_basic_values(Connection conn, String current_user) {
         /**
-         * Inserts basic value, aka ", " to column, so it will be possible to append new data into it.
+         * Inserts basic value, aka ", " to column, so it will be possible to append new
+         * data into it.
          * 
          * @param Connection conn
-         * @param String current_user
+         * @param String     current_user
          */
-        String query = String.format("update my_users set workout_name = concat(workout_name, ', ') where username = '%s'", current_user);
-        String query1 = String.format("update my_users set workout_type = concat(workout_type, ', ') where username = '%s'", current_user);
-        String query2 = String.format("update my_users set workout_path = concat(workout_path, ', ') where username = '%s'", current_user);
+        String query = String.format(
+                "update my_users set workout_name = concat(workout_name, ', ') where username = '%s'", current_user);
+        String query1 = String.format(
+                "update my_users set workout_type = concat(workout_type, ', ') where username = '%s'", current_user);
+        String query2 = String.format(
+                "update my_users set workout_path = concat(workout_path, ', ') where username = '%s'", current_user);
         try {
             Statement statemnt = conn.createStatement();
             statemnt.executeUpdate(query);
@@ -521,7 +534,9 @@ public class ConnectToDB {
     }
 
     public void remove_all_workout_data(Connection conn, String current_user) {
-        String query = String.format("UPDATE my_users SET workout_name = ', ', workout_type = ', ', workout_path = ', ', workout_duration = ', ' WHERE username='%s';", current_user);
+        String query = String.format(
+                "UPDATE my_users SET workout_name = ', ', workout_type = ', ', workout_path = ', ', workout_duration = ', ' WHERE username='%s';",
+                current_user);
         try {
             Statement statmeent = conn.createStatement();
             statmeent.executeQuery(query);
@@ -540,7 +555,7 @@ public class ConnectToDB {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-        
+
     }
 
     public void add_height(Connection conn, String height, String current_user) {
@@ -552,11 +567,13 @@ public class ConnectToDB {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-        
+
     }
 
     public void add_workout_duration(Connection conn, String timeWorkedOut, String current_user) {
-        String query = String.format("UPDATE my_users set workout_duration = workout_duration || '%s, ' WHERE username = '%s';", timeWorkedOut, current_user);
+        String query = String.format(
+                "UPDATE my_users set workout_duration = workout_duration || '%s, ' WHERE username = '%s';",
+                timeWorkedOut, current_user);
         try {
             Statement statement = conn.createStatement();
             statement.executeUpdate(query);
@@ -564,11 +581,12 @@ public class ConnectToDB {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-        
+
     }
 
     public void add_workout_date(Connection conn, String date, String current_user) {
-        String query = String.format("UPDATE my_users set date = date || '%s, ' WHERE username = '%s';", date, current_user);
+        String query = String.format("UPDATE my_users set date = date || '%s, ' WHERE username = '%s';", date,
+                current_user);
         try {
             Statement statement = conn.createStatement();
             statement.executeUpdate(query);
@@ -576,11 +594,13 @@ public class ConnectToDB {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-        
+
     }
 
     public void add_workout_burned_calorie(Connection conn, String calorie_burned, String current_user) {
-        String query = String.format("UPDATE my_users set calorie_burned = calorie_burned || '%s, ' WHERE username = '%s';", calorie_burned, current_user);
+        String query = String.format(
+                "UPDATE my_users set calorie_burned = calorie_burned || '%s, ' WHERE username = '%s';", calorie_burned,
+                current_user);
         try {
             Statement statement = conn.createStatement();
             statement.executeUpdate(query);
@@ -588,17 +608,17 @@ public class ConnectToDB {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-        
+
     }
 
     public String read_users_weight(Connection conn, String current_user) {
         String query = String.format("SELECT weight FROM my_users WHERE username = '%s'", current_user);
         try {
             Statement statement = conn.createStatement();
-            ResultSet rs =  statement.executeQuery(query);
+            ResultSet rs = statement.executeQuery(query);
             while (rs.next()) {
                 return rs.getString("weight");
-                
+
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -621,7 +641,7 @@ public class ConnectToDB {
         }
         return value;
     }
-    
+
     public String get_weight_by_username(Connection conn, String current_user) {
         String weight = "";
         String query = String.format("SELECT weight FROM my_users WHERE username = '%s'", current_user);
@@ -648,5 +668,53 @@ public class ConnectToDB {
             System.out.println(e.getMessage());
         }
     }
+
+    public void insert_username(Connection conn, String newUsername, String current_user) {
+        String query = String.format("UPDATE my_users SET username = '%s' WHERE username = '%s'", newUsername,
+                current_user);
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeUpdate(query);
+            System.out.println("Username updated!");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void insert_firstName(Connection conn, String newFirstName, String current_user) {
+        String query = String.format("UPDATE my_users SET firstname = '%s' WHERE username = '%s'", newFirstName,
+                current_user);
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeUpdate(query);
+            System.out.println("First name updated!");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void insert_lastName(Connection conn, String newLastName, String current_user) {
+        String query = String.format("UPDATE my_users SET lastname = '%s' WHERE username = '%s'", newLastName,
+                current_user);
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeUpdate(query);
+            System.out.println("Last name updated!");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void insert_email(Connection conn, String newEmail, String current_user) {
+        String query = String.format("UPDATE my_users SET email = '%s' WHERE username = '%s'", newEmail, current_user);
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeUpdate(query);
+            System.out.println("Email updated!");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
 
 }

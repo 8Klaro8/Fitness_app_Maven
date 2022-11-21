@@ -51,11 +51,11 @@ import java.util.concurrent.TimeUnit;
 
 public class MyWokrouts extends JFrame implements ActionListener, MouseInputListener {
     String selectedButton = "";// temp solution for preserving selected workout - for deletion
-    float allCalorieBurnedLastWeek;
+    float allCalorieBurnedLastWeek, allCalorieBurnedToday;
     // init. button(s), label(s) and panel(s)
     JButton button, backButton, test, workoutButton, addWorkout, removeWorkout;
     JPanel panelTop, panelBottom, panelRight, panelCenter, panelScroll;
-    JLabel caloriesBurnedLastWeek, caloriesBurnedLastWeekNum;
+    JLabel caloriesBurnedLastWeek, caloriesBurnedLastWeekNum, caloriesBurnedToday, caloriesBurnedTodayNum;
     // connect and get user
     ConnectToDB db = new ConnectToDB();
     Connection conn = db.connect_to_db("accounts", "postgres", System.getenv("PASSWORD"));
@@ -91,6 +91,8 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
     public void init_labels() {
         caloriesBurnedLastWeek = new JLabel();
         caloriesBurnedLastWeekNum = new JLabel();
+        caloriesBurnedToday = new JLabel();
+        caloriesBurnedTodayNum = new JLabel();
     }
 
     private void if_no_workout_then_redirect() throws IOException {
@@ -123,12 +125,18 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
         adjustPanel.add(removeWorkout);
         // set 'caloriesBurnedLastWeek' text
         caloriesBurnedLastWeek.setText("Calories Burned Last 7 Days:");
+        caloriesBurnedToday.setText("Calories burned today:");
         caloriesBurnedLastWeek.setHorizontalAlignment(SwingConstants.CENTER);
+        caloriesBurnedToday.setHorizontalAlignment(SwingConstants.CENTER);
+        caloriesBurnedLastWeek.setBorder(new EmptyBorder(new Insets(30,0,0,0)));
         // set/ get 'caloriesBurnedLastWeekNum'
         get_last_week_calorie();
+        get_todays_calorie();
         // add calories burned label
         adjustPanel.add(caloriesBurnedLastWeek);
         adjustPanel.add(caloriesBurnedLastWeekNum);
+        adjustPanel.add(caloriesBurnedToday);
+        adjustPanel.add(caloriesBurnedTodayNum);
         panelCenter.add(BorderLayout.CENTER, adjustPanel);
     }
 
@@ -162,6 +170,44 @@ public class MyWokrouts extends JFrame implements ActionListener, MouseInputList
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    public void get_todays_calorie() {
+        // get 'todaysDate'
+        String todaysDateString = get_todays_date();
+        // inti 'todaysDate'
+        Date todaysDate = dateToSimpleDate(todaysDateString);
+        // init 'allCalorieBurnedLastWeek'
+        allCalorieBurnedToday = 0;
+        try {
+            String allWorkoutDate = db.read_get_all_date(conn, currUser.get_current_user());
+            String allWorkoutBurnedCalorie = db.read_all_workout_burned_calorie(conn, currUser.get_current_user());
+            ArrayList<String> allWorkoutDateSep = separate_collect_workout_datas(allWorkoutDate);
+            ArrayList<String> allWorkoutBurnedCalorieSep = separate_collect_workout_datas(allWorkoutBurnedCalorie);
+            for (int i = 0; i < allWorkoutDateSep.size(); i++) {
+                // get current date
+                Date currDate = dateToSimpleDate(allWorkoutDateSep.get(i));
+                // get timedifference in miliseconds
+                long timeDiff = todaysDate.getTime() - currDate.getTime();
+                // transform miliseconds to days
+                long dayDiff = TimeUnit.MILLISECONDS.toDays(timeDiff) % 365;
+                // checking if date is smaller than today but not older than a week
+                if (!(dayDiff > 0)) { // if workouts date is no longer than 7 days then get calorie
+                    // Read other saved datas and get calorie by index
+                    allCalorieBurnedToday += Float.valueOf(allWorkoutBurnedCalorieSep.get(i));
+                }
+            }
+            // set caloriedBuned font properties
+            setCaloriesBurnedTodayText();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void setCaloriesBurnedTodayText() {
+        caloriesBurnedTodayNum.setText(String.valueOf(allCalorieBurnedToday));
+        caloriesBurnedTodayNum.setHorizontalAlignment(SwingConstants.CENTER);
+        caloriesBurnedTodayNum.setFont(new Font(caloriesBurnedTodayNum.getFont().getName(), caloriesBurnedTodayNum.getFont().getStyle(), 20));
     }
 
     private void setCaloriesBurnedText() {

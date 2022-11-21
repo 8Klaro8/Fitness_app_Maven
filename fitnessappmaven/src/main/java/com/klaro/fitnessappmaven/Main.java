@@ -64,8 +64,8 @@ public final class Main {
         // new AddWorkout();
         // new MyWokrouts();
         // new ChangeProfile();
-        new MyFrame();
-        // new HomeSite();
+        // new MyFrame();
+        new HomeSite();
         // ConnectToDB db = new ConnectToDB();
         // Connection conn = db.connect_to_db("accounts", "postgres", System.getenv("PASSWORD"));
         // db.add_column(conn, "workout_name", "text");

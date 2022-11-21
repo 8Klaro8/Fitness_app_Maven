@@ -20,6 +20,7 @@ public class RegisterFrame extends JFrame implements ActionListener, LoginFormIn
     final String BASE_PROF_PIC = "fitnessappmaven\\src\\main\\java\\com\\klaro\\fitnessappmaven\\ProfilePics\\basic_prif_pic.png";
     public final String LOGO_PIC_PATH = "fitnessappmaven\\src\\main\\java\\com\\klaro\\fitnessappmaven\\Logo\\lgo.png";
     CurrentUser currUserMethod = new CurrentUser();
+    String username;
 
     RegisterFrame() {
         hashPW = new HashPassword();
@@ -141,7 +142,7 @@ public class RegisterFrame extends JFrame implements ActionListener, LoginFormIn
                 passwordTextfield.setText("");
                 passwordTextfieldRep.setText("");
             } else {
-                String username = userTextfield.getText();
+                username = userTextfield.getText();
                 if (username.isEmpty() || pwd_string_1.isEmpty() || pwd_string_2.isEmpty()) {
                     JOptionPane.showMessageDialog(this, "Username and Password fields can't be empty.");
                     return;
@@ -167,9 +168,9 @@ public class RegisterFrame extends JFrame implements ActionListener, LoginFormIn
                     ConnectToDB db = new ConnectToDB();
                     Connection conn = db.connect_to_db("accounts", "postgres", System.getenv("PASSWORD"));
                     // control if username exists in DB
-                    boolean usernameExists = db.username_exists(conn, "my_users", username);
+                    boolean usernameExists = db.username_exists(conn, username);
                     if (!(usernameExists)) {
-                        db.add_user(conn, username, hashedPW, ", ", ", ", BASE_PROF_PIC, height.getText(), weight.getText(), ", ", ", ", ", ");
+                        db.add_user(conn, username, hashedPW, ", ", ", ", BASE_PROF_PIC, height.getText(), weight.getText(), ", ", ", ", ", ", ", ");
 
                         // Login freshly registered user
                         currUserMethod.set_current_user(username);
@@ -180,6 +181,7 @@ public class RegisterFrame extends JFrame implements ActionListener, LoginFormIn
                         JOptionPane.showMessageDialog(this, "User: " + username + " has been registered!");
                     } else {
                         JOptionPane.showMessageDialog(this, "The username: " + username + " already exists.");
+                        return;
                     }
 
                 } catch (Exception err) {

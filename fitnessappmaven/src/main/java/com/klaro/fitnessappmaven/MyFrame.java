@@ -17,12 +17,24 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.awt.*;
+import javafx.application.*;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.layout.StackPane;
+import javafx.*;
 
-public class MyFrame extends JFrame implements ActionListener, LoginFormInterFace {
+public class MyFrame extends JFrame implements ActionListener, LoginFormInterFace{
 
     // estabilish connection to DB
     ConnectToDB db = new ConnectToDB();
     Connection conn = db.connect_to_db("accounts", "postgres", System.getenv("PASSWORD"));
+
+    // styler
+    public static final String MainStyle = "MainStyler.css";
+
+    // with and height
+    public static final int WIDTH = 370;
+    public static final int HEIGHT = 500;
 
     // initialize container
     Container container;
@@ -41,8 +53,15 @@ public class MyFrame extends JFrame implements ActionListener, LoginFormInterFac
     JCheckBox showPassword;
 
     MyFrame() {
+
+
         container = getContentPane();
         container.setLayout(new BoxLayout(container, BoxLayout.LINE_AXIS));
+
+        // activate styler
+        // StackPane layout = new StackPane();
+        // Scene scene = new Scene(layout, WIDTH, HEIGHT);
+        // Scene scene = new Scene(this.container, WIDTH, HEIGHT);
 
         // this.frame settngs
         this.setTitle("My IT app");
@@ -176,10 +195,12 @@ public class MyFrame extends JFrame implements ActionListener, LoginFormInterFac
             passwordTextfield.setEchoChar('*');
         }
     }
+
     public void login_to_home() throws IOException {
         this.dispose();
         new HomeSite();
     }
+
     public void go_to_register_page() throws IOException {
         this.dispose();
         new RegisterFrame();
